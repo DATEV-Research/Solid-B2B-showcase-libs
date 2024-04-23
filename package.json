@@ -1,0 +1,15 @@
+{
+  "name": "solid-b2b-showcase-libs",
+  "version": "1.0.0",
+  "description": "solid libs for B2B showcase",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "xxx",
+  "license": "ISC",
+  "dependencies": {
+    "@inrupt/solid-client-authn-browser": "^2.0.0",
+    "vue": "^3.4.19"
+  }
+}
