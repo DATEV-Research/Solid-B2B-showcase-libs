@@ -1,68 +1,65 @@
 <template>
-  <h1 class="header col-12 flex align-items-center gap-2">
-    Your Access Manager
-    <Button icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
-      @click=" reloadFlag = !reloadFlag" />
-  </h1>
-  <div style="height: 75px" id="header-bar-spacer" />
-  <div class="requestContainer">
-    <div v-for="accessReceiptResource in accessReceiptInformationResources" :key="accessReceiptResource + reloadFlag"
-      class="p-card" style="margin: 5px">
-      <Suspense>
-        <AccessReceipt :informationResourceURI="accessReceiptResource" :accessAuthzContainer="accessAuthzContainer"
-          :redirect="redirect" :accessAuthzArchiveContainer="accessAuthzArchiveContainer"
-          @isReceiptForRequests="addRequestsToHandled" />
-        <template #fallback>
-          <span>
-            Loading {{ accessReceiptResource.split("/")[accessReceiptResource.split("/").length - 1] }}
-          </span>
-        </template>
-      </Suspense>
-    </div>
-    <div v-for="accessRequestResource in displayAccessRequests" :key="accessRequestResource + reloadFlag">
+  <section>
+    <header class="w-full md:w-11 lg:w-10 xl:w-9 mx-auto mt-7">
+      <h1 class="px-4 md:px-0 flex align-items-center gap-2">
+        Access Manager
+        <Button icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
+                @click="reloadFlag = !reloadFlag" />
+      </h1>
+    </header>
+
+  <div class="flex flex-column gap-5 w-full md:w-11 xl:w-9 mx-auto my-5">
+    <article v-for="accessRequestResource in displayAccessRequests" :key="accessRequestResource + reloadFlag">
       <Suspense>
         <AccessRequest :informationResourceURI="accessRequestResource" :redirect="redirect"
-          :accessReceiptContainer="accessReceiptContainer" :accessAuthzContainer="accessAuthzContainer"
-          :dataAuthzContainer="dataAuthzContainer" @createdAccessReceipt="refreshAccessReceiptInformationResources" />
+                       :accessReceiptContainer="accessReceiptContainer" :accessAuthzContainer="accessAuthzContainer"
+                       :dataAuthzContainer="dataAuthzContainer" @createdAccessReceipt="refreshAccessReceiptInformationResources" />
         <template #fallback>
-          <span>
-            Loading {{ accessRequestResource.split("/")[accessRequestResource.split("/").length - 1] }}
-          </span>
+          <Card class="h-15rem">
+            <template #content>
+              <Skeleton width="10rem" class="mb-2"></Skeleton>
+              <Skeleton width="5rem" class="mb-2"></Skeleton>
+              <Skeleton class="mb-2"></Skeleton>
+              <Skeleton width="2rem" class="mb-2"></Skeleton>
+              <span>
+                Loading Authorization {{ accessRequestResource.split("/")[accessRequestResource.split("/").length - 1] }}
+              </span>
+            </template>
+          </Card>
         </template>
       </Suspense>
-    </div>
+    </article>
+
+    <article v-for="accessReceiptResource in accessReceiptInformationResources" :key="accessReceiptResource + reloadFlag">
+      <Suspense>
+        <AccessReceipt :informationResourceURI="accessReceiptResource" :accessAuthzContainer="accessAuthzContainer"
+                       :redirect="redirect" :accessAuthzArchiveContainer="accessAuthzArchiveContainer"
+                       @isReceiptForRequests="addRequestsToHandled" />
+        <template #fallback>
+          <Card>
+            <template #content>
+              <Skeleton width="10rem" class="mb-2"></Skeleton>
+              <Skeleton width="5rem" class="mb-2"></Skeleton>
+              <Skeleton class="mb-2"></Skeleton>
+              <Skeleton width="2rem" class="mb-2"></Skeleton>
+              <span>
+                Loading Access Receipt {{ accessReceiptResource.split("/")[accessReceiptResource.split("/").length - 1] }}
+              </span>
+            </template>
+          </Card>
+        </template>
+      </Suspense>
+    </article>
   </div>
+  </section>
 </template>
 
 <style scoped>
-.header {
-  background: linear-gradient(90deg, #195B78 0%, #287F8F 100%);
-  color: white;
-  position: fixed;
-  padding: 0.5rem 2.5rem 1rem 2.5rem;
-  box-shadow: 0 0 10px -5px black;
-  z-index: 1;
-
-  .p-button {
-    margin-left: 0.5rem;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.05);
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-  }
-}
-
-.requestContainer {
-  width: 60rem;
-  margin: 2rem auto;
-}
 </style>
 
 <script lang="ts" setup>
-import AccessRequest from "../comoponents/AccessRequest.vue";
-import AccessReceipt from "../comoponents/AccessReceipt.vue";
+import AccessReceipt from "@/components/receipts/AccessReceipt";
+import AccessRequest from "@/components/requests/AccessRequest";
 import { AUTH, createContainer, getContainerItems, getResource, parseToN3 } from "@shared/solid";
 import { useSolidProfile, useSolidSession } from "@shared/composables";
 import { computed, onMounted, ref, watch } from "vue";
@@ -102,8 +99,6 @@ const accessAuthzArchiveContainer = computed(() => storage.value + accessAuthzAr
 // create access receipt container if needed
 const accessReceiptContainerName = "authorization-receipts"
 const accessReceiptContainer = computed(() => storage.value + accessReceiptContainerName + "/");
-
-
 
 watch(() => storage.value,
   async () => {
@@ -157,9 +152,9 @@ watch(() => storage.value,
 // setup done, now do stuff
 
 /**
-* Retrieve access requests from an access inbox
-* @param accessInbox
-*/
+ * Retrieve access requests from an access inbox
+ * @param accessInbox
+ */
 async function getAccessRequestInformationResources(accessInbox: string) {
   if (!accessInbox) {
     return [];
@@ -252,9 +247,9 @@ async function fetchStoreOf(uri: string): Promise<Store> {
  */
 const reloadFlag = ref(false)
 watch(() => reloadFlag.value, () => {
-  refreshAccessRequestInformationResources()
-  refreshAccessReceiptInformationResources()
-}
+    refreshAccessRequestInformationResources()
+    refreshAccessReceiptInformationResources()
+  }
 )
 async function refreshAccessRequestInformationResources() {
   const newListOfAccessRequests = await getAccessRequestInformationResources(accessInbox.value);
@@ -266,5 +261,6 @@ async function refreshAccessReceiptInformationResources() {
   accessReceiptInformationResources.value.length = 0;
   accessReceiptInformationResources.value.push(...newListOfAccessReceipts);
 }
+
 
 </script>

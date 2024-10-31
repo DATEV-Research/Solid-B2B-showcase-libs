@@ -1,58 +1,50 @@
 <template>
-  <div class="p-card accessNeedGroup">
-    <div>
-      <strong>Short description of requested access: </strong>
-      <div v-for="label in prefLabels" :key="label">
-        {{ label }}
-      </div>
-    </div>
-    <div>
-      <strong>Explanation: </strong>
-      <div v-for="definition in definitions" :key="definition">
-        {{ definition }}
-      </div>
-    </div>
-    <div>
-      <div v-for="accessNeed in accessNeeds" :key="accessNeed" class="accessNeed"
-           style="margin: 5px">
-        <Suspense>
-          <AccessNeed :resourceURI="accessNeed" :forSocialAgents="forSocialAgents"
-                      :dataAuthzContainer="dataAuthzContainer"
-                      @createdDataAuthorization="addToDataAuthorizations"
-                      @noDataRegistrationFound="setNoDataRegistrationFound"
-                      :groupAuthorizationTrigger="dataAuthorizationTrigger"/>
-          <template #fallback>
-                        <span>
-                            Loading {{ accessNeed.split("/")[accessNeed.split("/").length - 1] }}
-                        </span>
-          </template>
-        </Suspense>
-      </div>
-      <!-- DO NOT REMOVE -->
-      <!--
-      <Button @click="grantAccessAuthorization" type="button" class="btn btn-primary mb-2"
-              :disabled="associatedAccessAuthorization !== '' || requestAuthorizationTrigger || noDataRegistrationFound">
-        Authorize Group
-      </Button> -->
+  <div>
+    <span class="text-black-alpha-60">Short description of requested access: </span>
+    <div
+      v-for="label in prefLabels"
+      :key="label"
+    >
+      {{ label }}
     </div>
   </div>
+  <div class="mt-3">
+    <span class="text-black-alpha-60">Explanation: </span>
+    <div
+      v-for="definition in definitions"
+      :key="definition"
+    >
+      {{ definition }}
+    </div>
+  </div>
+
+  <div
+    v-for="accessNeed in accessNeeds"
+    :key="accessNeed"
+  >
+    <Suspense>
+      <AccessNeed :resourceURI="accessNeed" :forSocialAgents="forSocialAgents"
+                  :dataAuthzContainer="dataAuthzContainer"
+                  @createdDataAuthorization="addToDataAuthorizations"
+                  @noDataRegistrationFound="setNoDataRegistrationFound"
+                  :groupAuthorizationTrigger="dataAuthorizationTrigger" />
+      <template #fallback>
+        <p>
+          Loading Access Need {{ accessNeed.split("/")[accessNeed.split("/").length - 1] }}
+        </p>
+      </template>
+    </Suspense>
+  </div>
+  <!-- DO NOT REMOVE -->
+  <!--
+  <Button @click="grantAccessAuthorization" type="button" class="mb-2"
+          :disabled="associatedAccessAuthorization !== '' || requestAuthorizationTrigger || noDataRegistrationFound">
+    Authorize Group
+  </Button> -->
 </template>
 
-<style scoped>
-.accessNeedGroup {
-  margin: 0 0 1rem 1rem;
-  padding: 1rem;
-  border-radius: 7px;
-  background-color: var(--surface-b);
-}
-
-.accessNeed {
-  margin-left: 2rem;
-}
-</style>
-
 <script setup lang="ts">
-import AccessNeed from "../comoponents/AccessNeed.vue";
+import AccessNeed from "@/components/requests/AccessNeed";
 import {useSolidProfile, useSolidSession} from "@shared/composables";
 import {
   getResource,
@@ -257,3 +249,6 @@ async function createAccessAuthorization(
     })
 }
 </script>
+
+<style scoped>
+</style>

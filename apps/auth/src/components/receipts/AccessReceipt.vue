@@ -1,110 +1,93 @@
 <template>
   <div class="accessReceipt">
     <Card>
+      <template #title>
+        <div class="mb-3">
+          <Chip
+            :label="status"
+            :class="{'bg-green-300': status === 'Active', 'bg-red-500': status === 'Revoked', 'text-white': status === 'Revoked', 'text-sm': true}"
+          />
+        </div>
+        Authorization
+      </template>
+
       <template #content>
-        <div class="contentContainer">
+        <div class="grid">
           <!-- <div class="accessRequest" v-for="request in requests" :key="request"> -->
-          <div class="field">
-            <div class="fieldLabel">Provided At: </div>
-            <span v-for="date in provisionDates" :key="date">
-                          {{ date }}
-                      </span>
+          <div class="col-12">
+            <div class="text-black-alpha-60">Provided At: </div>
+            <DateFormatted :datetimeString="date" v-for="date in provisionDates" :key="date" />
           </div>
-          <div class="field">
-            <div class="fieldLabel">For Access Request: </div>
-            <a v-for="accessRequest in accessRequests" :key="accessRequest" :href="accessRequest">
+          <div class="col-12 md:col">
+            <div class="text-black-alpha-60">
+              For Access Request:
+            </div>
+            <a
+              v-for="accessRequest in accessRequests"
+              :key="accessRequest"
+              :href="accessRequest"
+            >
               {{ accessRequest.split("/").pop() }}
             </a>
           </div>
-          <div class="field">
-            <div class="fieldLabel">Purpose: </div>
+          <div class="col-12 md:col">
+            <div class="text-black-alpha-60">
+              Purpose:
+            </div>
             <a :href="purpose">
               {{ purpose.split("#").pop() }}
             </a>
           </div>
-          <div class="accessAuthorizations">
-            <div>
-              <div class="fieldLabel">Access Authorizations</div>
-            </div>
-            <div v-if="nonEmptyAuthorizations.length > 0" style="margin: 1rem 0">
-              <!-- TODO Freeze -->
-              <!-- <Button @click="freezeAuthorizations()" type="button" style="margin: 20px"
-      class="btn btn-primary p-button-warning">
-      Freeze
-  </Button> -->
-              <Button @click="revokeRights" type="button" class="btn btn-primary p-button-danger"
-                      :disabled="isWaitingForAccessAuthorizations">
-                Revoke all shown Authorizations
-              </Button>
-            </div>
-            <div v-else>
-              <Button disabled class="p-button-rounded p-button-danger" style="margin-bottom: 1rem;">
-                {{ accessAuthorizations.length > 0 ? 'Revoked' : 'Denied' }}
-              </Button>
-            </div>
-            <div v-for="accessAuthorization in accessAuthorizations" :key="accessAuthorization">
-              <Suspense>
-                <AccessAuthorization :resourceURI="accessAuthorization"
-                                    :accessAuthzContainer="accessAuthzContainer"
-                                    :accessAuthzArchiveContainer="accessAuthzArchiveContainer"
-                                    :receipRevokationTrigger="isWaitingForAccessAuthorizations"
-                                    @updatedAccessAuthorization="updateAccessAuthorization"
-                                    @isEmptyAuthorization="addToEmpty"/>
-                <template #fallback>
-                                  <span>
-                                      Loading {{
-                                      accessAuthorization.split("/")[accessAuthorization.split("/").length - 1]
-                                    }}
-                                  </span>
-                </template>
-              </Suspense>
-            </div>
+          <div class="col-12">
+            <Accordion v-if="accessAuthorizations.length" value="0" class="surface-50 border-round">
+            <AccordionTab header="Access Authorizations">
+              <div v-for="accessAuthorization in accessAuthorizations" :key="accessAuthorization">
+                <Suspense>
+                  <AccessAuthorization :resourceURI="accessAuthorization"
+                                       :accessAuthzContainer="accessAuthzContainer"
+                                       :accessAuthzArchiveContainer="accessAuthzArchiveContainer"
+                                       :receipRevokationTrigger="isWaitingForAccessAuthorizations"
+                                       @updatedAccessAuthorization="updateAccessAuthorization"
+                                       @isEmptyAuthorization="addToEmpty"
+                                       />
+                  <template #fallback>
+                                <span>
+                                    Loading {{
+                                    accessAuthorization.split("/")[accessAuthorization.split("/").length - 1]
+                                  }}
+                                </span>
+                  </template>
+                </Suspense>
+              </div>
+            </AccordionTab>
+          </Accordion>
           </div>
         </div>
+      </template>
+      <template #footer>
+        <div
+          v-if="!isRevokedOrDenied"
+          class="flex justify-content-end border-top-1 pt-3 -mt-5 border-blue-100"
+        >
+          <!-- TODO Freeze -->
+          <!-- <Button @click="freezeAuthorizations()" type="button" style="margin: 20px"
+  class="p-button-warning">
+  Freeze
+</Button> -->
+          <Button @click="revokeRights" type="button" severity="primary" class="w-full justify-content-center sm:w-auto"
+                  :disabled="isWaitingForAccessAuthorizations">
+            Revoke All
+          </Button>
+        </div>
+
       </template>
     </Card>
   </div>
 </template>
 
-<style scoped>
-.accessReceipt {
-  margin-bottom: 1.5rem;
-}
-
-.contentContainer {
-  margin: -0.5rem 0;
-  padding: 0 0.5rem;
-}
-
-.field {
-  display: flex;
-  margin-bottom: 0;
-}
-
-.fieldLabel {
-  min-width: 18rem;
-  font-weight: bold;
-  margin-right: 1rem;
-}
-
-a {
-  color: rgba(0, 108, 110, 1);
-  text-decoration: underline;
-  font-weight: bold;
-}
-
-.accessAuthorizations {
-  margin-top: 1rem;
-
-  .fieldLabel {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-}
-</style>
-
 <script setup lang="ts">
-import AccessAuthorization from "../comoponents/AccessAuthorization.vue";
+import AccessAuthorization from "@/components/receipts/AccessAuthorization";
+import {DateFormatted} from "@shared/components";
 import {useSolidSession} from "@shared/composables";
 import {
   getResource,
@@ -154,6 +137,10 @@ const accessReceipt = state.informationResourceStore.getSubjects(RDF("type"), IN
 const provisionDates = computed(() => state.informationResourceStore.getObjects(accessReceipt, INTEROP("providedAt"), null).map(t => t.value))
 const accessRequests = computed(() => state.informationResourceStore.getObjects(accessReceipt, AUTH("hasAccessRequest"), null).map(t => t.value))
 const accessAuthorizations = computed(() => state.informationResourceStore.getObjects(accessReceipt, INTEROP("hasAccessAuthorization"), null).map(t => t.value))
+
+const isRevokedOrDenied = computed(() => !nonEmptyAuthorizations.value.length);
+const status = computed<'Active' | 'Revoked' | 'Denied'>(() => isRevokedOrDenied.value ? accessAuthorizations.value.length > 0 ? 'Revoked' : 'Denied' : 'Active');
+
 
 // get access request data
 
@@ -308,3 +295,6 @@ _:rename a solid:InsertDeletePatch;
   state.informationResourceStore = new Store(state.informationResourceStore.getQuads(null, null, null, null))
 }
 </script>
+
+<style scoped>
+</style>

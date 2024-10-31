@@ -1,145 +1,117 @@
 <template>
-  <div class="accessRequests">
-    <Card>
-      <template #content>
-        <div class="contentContainer">
-          <div class="field">
-            <div class="fieldLabel">Purpose: </div>
-            <a v-for="label in purposes" :key="label" :href="label">
-              {{ label.split('#').pop() }}
-            </a>
+  <Card>
+    <template #title>
+      Access Request
+    </template>
+    <template #content>
+      <div class="grid">
+        <div class="col-12 md:col">
+          <div class="text-black-alpha-60">
+            Purpose:
           </div>
-          <div class="field">
-            <div class="fieldLabel">Data requester: </div>
-            <a v-for="sender in fromSocialAgents" :key="sender" :href="sender">
-              {{ senderName }}
-            </a>
-          </div>
-          <div class="field">
-            <div class="fieldLabel">Access will be granted to: </div>
-            <a v-for="grantee in forSocialAgents" :key="grantee" :href="grantee">
-              {{ granteeName }}
-            </a>
-          </div>
-          <div v-if="seeAlso.length > 0" class="field">
-            <div class="fieldLabel">For additional information see also: </div>
-            <a v-for="reference in seeAlso" :key="reference" :href="reference">
-              {{ reference.split("/").pop() }}
-            </a>
-          </div>
-          <div class="accessNeedGroups">
-            <div>
-              <div class="fieldLabel">Access Need Groups</div>
-            </div>
-            <div v-for="accessNeedGroup in accessNeedGroups" :key="accessNeedGroup">
-              <Suspense>
-                <AccessNeedGroup :resourceURI="accessNeedGroup" :forSocialAgents="forSocialAgents"
-                                :accessAuthzContainer="accessAuthzContainer" :dataAuthzContainer="dataAuthzContainer"
-                                :requestAuthorizationTrigger="accessAuthorizationTrigger"
-                                @createdAccessAuthorization="addToAccessAuthorizations"
-                                @noDataRegistrationFound="setNoDataRegistrationFound"/>
-                <template #fallback>
-                  <span>
-                    Loading {{ accessNeedGroup.split("/")[accessNeedGroup.split("/").length - 1] }}
-                  </span>
-                </template>
-              </Suspense>
-            </div>
-            <div v-if="noDataRegistrationFound" class="field">
-              <div class="fieldLabel">No matching Data Registrations were found for: </div>
-              <a v-for="shapeTree in shapeTreesOfMissingDataRegs" :key="shapeTree.toString()" :href="shapeTree.toString()">
-                {{ shapeTree.split('#').pop() }}
-              </a>
-            </div>
-          </div>
-          <div class="submitButtons">
-            <Button @click="grantWithAccessReceipt" type="button" class="buttonAccept"
-                    :disabled="associatedAccessReceipt !== '' || accessAuthorizationTrigger || noDataRegistrationFound">
-              Authorize Request
-            </Button>
-            <Button @click="declineWithAccessReceipt" type="button" severity="secondary" class="buttonDecline"
-                    :disabled="associatedAccessReceipt !== '' || accessAuthorizationTrigger || isPartiallyAuthorized || noDataRegistrationFound">
-              Decline Request
-            </Button>
-          </div>
+          <a
+            v-for="label in purposes"
+            :key="label"
+            :href="label"
+          >
+            {{ label.split('#').pop() }}
+          </a>
         </div>
-      </template>
-    </Card>
-  </div>
+        <div class="col-12 md:col">
+          <div class="text-black-alpha-60">
+            Data requester:
+          </div>
+          <a
+            v-for="sender in fromSocialAgents"
+            :key="sender"
+            :href="sender"
+          >
+            {{ senderName }}
+          </a>
+        </div>
+        <div class="col-12 md:col">
+          <div class="text-black-alpha-60">
+            Access will be granted to:
+          </div>
+          <a
+            v-for="grantee in forSocialAgents"
+            :key="grantee"
+            :href="grantee"
+          >
+            {{ granteeName }}
+          </a>
+        </div>
+        <div
+          v-if="seeAlso.length > 0"
+          class="col-12 md:col"
+        >
+          <div class="text-black-alpha-60">
+            For additional information see also:
+          </div>
+          <a
+            v-for="reference in seeAlso"
+            :key="reference"
+            :href="reference"
+          >
+            {{ reference.split("/").pop() }}
+          </a>
+        </div>
+
+        <Accordion class="col-12 surface-50 border-round" value="0">
+            <AccordionTab header="Access Need Groups">
+              <div v-for="accessNeedGroup in accessNeedGroups" :key="accessNeedGroup">
+                <Suspense>
+                  <AccessNeedGroup :resourceURI="accessNeedGroup" :forSocialAgents="forSocialAgents"
+                                   :accessAuthzContainer="accessAuthzContainer" :dataAuthzContainer="dataAuthzContainer"
+                                   :requestAuthorizationTrigger="accessAuthorizationTrigger"
+                                   @createdAccessAuthorization="addToAccessAuthorizations"
+                                   @noDataRegistrationFound="setNoDataRegistrationFound"/>
+                  <template #fallback>
+                    <span>
+                      Loading Access Need Group {{ accessNeedGroup.split("/")[accessNeedGroup.split("/").length - 1] }}
+                    </span>
+                  </template>
+                </Suspense>
+              </div>
+              <div v-if="noDataRegistrationFound" class="col-12 md:col">
+                <div class="text-black-alpha-60">No matching Data Registrations were found for: </div>
+                <a v-for="shapeTree in shapeTreesOfMissingDataRegs" :key="shapeTree.toString()" :href="shapeTree.toString()">
+                  {{ shapeTree.split('#').pop() }}
+                </a>
+              </div>
+            </AccordionTab>
+        </Accordion>
+      </div>
+    </template>
+    <template #footer>
+      <div class="grid sm:justify-content-end border-top-1 gap-2 pt-3 -mt-3 border-blue-100">
+        <Button
+          class="w-full justify-content-center sm:w-auto"
+          severity="primary"
+          type="button"
+          :disabled="associatedAccessReceipt !== '' || accessAuthorizationTrigger || noDataRegistrationFound"
+          @click="confirmGrantWithAccessReceipt"
+        >
+          Authorize Request
+        </Button>
+        <Button
+          class="w-full justify-content-center sm:w-auto"
+          type="button"
+          severity="secondary"
+          :disabled="associatedAccessReceipt !== '' || accessAuthorizationTrigger || isPartiallyAuthorized || noDataRegistrationFound"
+          @click="confirmDeclineWithAccessReceipt"
+        >
+          Decline Request
+        </Button>
+      </div>
+    </template>
+  </Card>
+
+  <ConfirmDialog :group="'accessRequest-' + informationResourceURI" />
 </template>
 
-<style scoped>
-.accessRequests {
-  margin: 1rem 5px 0 5px;
-  padding-bottom: 1.5rem;
-}
-
-.contentContainer {
-  margin: -0.5rem 0;
-  padding: 0 0.5rem;
-}
-
-.field {
-  display: flex;
-  margin-bottom: 0;
-}
-
-.fieldLabel {
-  min-width: 18rem;
-  font-weight: bold;
-  margin-right: 1rem;
-}
-
-a {
-  color: rgba(0, 108, 110, 1);
-  text-decoration: underline;
-  font-weight: bold;
-}
-
-.accessNeedGroups {
-  margin-top: 1rem;
-
-  .fieldLabel {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-}
-
-.submitButtons {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.buttonAccept {
-  color: rgba(0, 0, 0, 0.9);
-  font-weight: 500;
-  min-width: 4rem;
-  background: rgba(153, 232, 39, 1);
-  border-radius: 4px;
-  border-width: 1px, 1px, 0px, 1px;
-  border-style: solid;
-  border-color: rgba(32, 151, 12, 0.5);
-  box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
-}
-
-.buttonDecline {
-  color: rgba(0, 0, 0, 0.9);
-  font-weight: 500;
-  min-width: 4rem;
-  background: rgba(246, 247, 249, 1);
-  border-radius: 4px;
-  border-width: 1px, 1px, 0px, 1px;
-  border-style: solid;
-  border-color: rgba(0, 0, 0, 0.15);
-  box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
-}
-</style>
-
 <script setup lang="ts">
-import AccessNeedGroup from "../comoponents/AccessNeedGroup.vue";
+import AccessNeedGroup from "@/components/requests/AccessNeedGroup";
 import { useSolidSession } from "@shared/composables";
 import {
   getResource,
@@ -154,11 +126,13 @@ import {
 import { Store } from "n3";
 import { useToast } from "primevue/usetoast";
 import { computed, reactive, ref } from "vue";
+import {useConfirm} from "primevue/useconfirm";
 
 const props = defineProps(["informationResourceURI", "redirect", "dataAuthzContainer", "accessAuthzContainer", "accessReceiptContainer"]);
 const emit = defineEmits(["createdAccessReceipt"])
 const { session } = useSolidSession();
 const toast = useToast();
+const confirm = useConfirm();
 
 const state = reactive({
   informationResourceStore: new Store(),
@@ -376,4 +350,42 @@ async function declineWithAccessReceipt() {
   }
 }
 
+function confirmGrantWithAccessReceipt(): void {
+
+  confirm.require({
+    group: `accessRequest-${props.informationResourceURI}`,
+    message: 'Are you sure you want to proceed?',
+    header: 'Authorize Access Request',
+    rejectLabel: 'Cancel',
+    acceptLabel: 'Authorize Request',
+    accept: () => {
+      // TODO add authorizations from groups and data-authorizations
+      grantWithAccessReceipt();
+    },
+    reject: () => {
+      //
+    },
+  });
+}
+
+function confirmDeclineWithAccessReceipt(): void {
+  confirm.require({
+    group: `accessRequest-${props.informationResourceURI}`,
+    message: 'Are you sure you want to proceed?',
+    header: 'Decline Access Request',
+    acceptClass: 'p-button-danger',
+    rejectLabel: 'Cancel',
+    acceptLabel: 'Decline Request',
+    accept: () => {
+      declineWithAccessReceipt();
+    },
+    reject: () => {
+      //
+    },
+  });
+}
+
 </script>
+
+<style scoped>
+</style>
