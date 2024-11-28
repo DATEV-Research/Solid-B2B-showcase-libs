@@ -10,6 +10,7 @@ const n3Writer = new Writer({
   // baseIRI: baseIRI,
   // prefixes: n3Prefixes,
 });
+const checkIcon = require('@/assets/check.svg');
 if (props.store) {
   const quads = props.store.getQuads(null, null, null, null)
   quads.length = 10
@@ -19,21 +20,24 @@ if (props.store) {
 </script>
 
 <template>
-  <div class="card" style="background: #DCDCDC">
-    <Panel header="Business Data" toggleable>
-      <p class="m-0">
-        {{ displayText }}
-      </p>
-      <template #footer>
-        <Message severity="success" :closable="false">Looks good: Automatic processing returned positive!</Message>
-      </template>
-    </Panel>
+  <div class="card bg-gray-50 border-round" style="background: rgba(232, 236, 239, 0.7); padding:0.5rem">
+    <p class="m-0">{{ displayText }} </p>
+  </div>
+  <div class="success-message border-round">
+    <p>Looks good: Automatic processing returned positive!
+      <span style="float:right">
+        <img :src="checkIcon" alt="check"/>
+      </span>
+    </p>
   </div>
 </template>
 
 <style scoped>
-.p-message {
-  background: linear-gradient(90deg, #195B78 0%, #287F8F 100%);
-  
+.success-message{
+  padding:1rem;
+  margin-top:1rem;
+  border:2px solid rgba(32, 151, 12, 1);
+  background-color:rgba(230, 252, 197, 1);
+  color:black
 }
 </style>

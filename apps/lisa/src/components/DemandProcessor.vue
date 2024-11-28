@@ -1,173 +1,95 @@
 <template>
-  <div class="container">
-    <div class="content-left">
-      <div class="refresh-container">
-        <Button icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only" @click="refreshState()"/>
-      </div>
-      <Stepper orientation="vertical" v-model:active-step="activeStep">
+  <div v-show="tabState === currentDemandState" >
+    <Card>
+      <template #content>
+        <div class="grid">
+          <div class="col-12" v-if ="currentState === STATES.Terminated" >
+            <StatusChip :status="STATES.Terminated"></StatusChip>
+          </div>
+          <div class="col-6">
+            <span>Applicant</span>
+            <h2>{{demanderName}}</h2>
+          </div>
+          <div class="col-6">
+            <span>Amount</span>
+            <h2>{{ amount }} - {{ currency }}</h2>
+          </div>
+        </div>
+        <div class="border-round-2xl p-2" style="background-color:rgba(246, 247, 249, 1);">
+          <div class=" grid gap-3 ml-2 py-2" v-if="currentState === STATES.DataNeeded">
+            <StatusChip :status="STATES.DataNeeded"></StatusChip>
+            <div class="w-full ml-2">
+              <p class="font-medium" >Business Assessment data</p>
+            </div>
 
-        <StepperPanel>
-          <template #header="{ index, clickCallback }">
-            <button id="pv_id_8_1_header_action" class="p-stepper-action" role="tab" aria-controls="pv_id_8_1_content" data-pc-section="action" @click="clickCallback">
-              <span :class="['p-stepper-number', { 'step-inactive': index < activeStep }]" data-pc-section="number">{{ index + 1 }}</span>
-              <span :class="['p-stepper-title', { 'step-inactive': index < activeStep }]" data-pc-section="title">
-                {{ `Request business assessment data from ${demanderName}` }}
-              </span>
-            </button>
-          </template>
-          <template #content="{ nextCallback }">
-            <div class="flex flex-column">
-              <div class="dropdown-container">
-                <span>Select additional Data to Request:</span>
-                <Dropdown v-model="selectedShapeTree" :options="shapeTrees" optionLabel="label" placeholder="Request Data"/>
+              <div class="dropdown relative w-full ml-2">
+                  <label class="z-1 pt-2.5 pl-2 text-sm text-black-alpha-70 absolute w-full">Select data</label>
+                  <Dropdown class="w-full h-3.75rem pt-4 mt-1 mb-2 control-shadow" v-model="selectedShapeTree" :options="shapeTrees" option-label="label" />
               </div>
               <Button class="step-button" v-bind:disabled="accessRequestUri !== undefined || isOfferCreated"
                       @click="requestAccessToData()">Request Data</Button>
+          </div>
+          <div v-else-if="currentState === STATES.PendingDataRequest || currentState === STATES.DataSuccessfullyProvided" class="gap-2 ml-2 py-2">
+            <StatusChip :status="currentState"></StatusChip>
+            <div class="ml-2">
+              <h5>Business Assessemnent data</h5>
+              <p class="text-xs pb-2">Requested Data</p>
+              <p class="pb-4 text-sm font-medium">{{selectedShapeTree.label}}</p>
             </div>
-            <div class="flex p-2">
-              <Button class="button-next" label="Next" @click="nextCallback" />
+            <Button class="step-button"
+                    v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
+                    @click="processDataDialogBox()">Show Data</Button>
+          </div>
+          <div v-else-if="currentState === STATES.WaitingForResponse || currentState === STATES.OfferAccepted || currentState === STATES.Terminated" class=" gap-2 ml-2 py-2">
+            <StatusChip :status="currentState" v-if="currentState !== STATES.Terminated"></StatusChip>
+            <div class="ml-2">
+              <h5>Business assessment data</h5>
+              <p class="text-xs pb-2">Requested Data:</p>
+              <p class="pb-4 text-sm font-medium">{{selectedShapeTree.label}}</p>
             </div>
-          </template>
-        </StepperPanel>
-
-        <StepperPanel>
-          <template #header="{ index, clickCallback }">
-            <button id="pv_id_8_1_header_action" class="p-stepper-action" role="tab" aria-controls="pv_id_8_1_content" data-pc-section="action" @click="clickCallback">
-              <span :class="['p-stepper-number', { 'step-inactive': index < activeStep }]" data-pc-section="number">{{ index + 1 }}</span>
-              <span :class="['p-stepper-title', { 'step-inactive': index < activeStep }]" data-pc-section="title">
-                {{ `Fetch processed business assessment data from ${demanderName}` }}
-              </span>
-            </button>
-          </template>
-          <template #content="{ prevCallback, nextCallback }">
-            <div class="flex flex-column">
-              <Button class="step-button"
-                      v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
-                      @click="fetchProcessedData()">Fetch Processed Data</Button>
+            <Button class="step-button"
+                    v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
+                    @click="processDataDialogBox()" severity="secondary">Show Data</Button>
+          </div>
+        </div>
+        <div class="grid pt-2 pb-2">
+          <div class="col-6 pl-0">
+            <DacklTextInput type="number" :disabled="!(currentState === STATES.DataSuccessfullyProvided)" :maxFractionDigits="2" class="w-full md:w-auto mt-2" label="Annual Percentage rate in %" v-model="enteredAnnualPercentageRate"/>
+          </div>
+          <div class="col-6">
+            <div class="dropdown relative w-full ml-2">
+              <label class="z-1 pt-2.5 pl-2 text-sm text-black-alpha-70 absolute w-full" for="currencyDropdown">Loan terms</label>
+              <Dropdown :disabled="!(currentState === STATES.DataSuccessfullyProvided)"  class="w-full h-3.75rem pt-4 mt-1 mb-2 control-shadow" id="loanTermDropDown" v-model="selectedLoanTerm" :options="loanTerms" option-label="label" />
             </div>
-            <BusinessData v-if="businessDataFetched" :store="state.businessAssessmentStore" />
-            <div class="flex p-2 gap-2">
-              <Button class="button-back" label="Back" severity="secondary" @click="prevCallback" />
-              <Button class="button-next" label="Next" @click="nextCallback" />
-            </div>
-          </template>
-        </StepperPanel>
-
-        <StepperPanel>
-          <template #header="{ index, clickCallback }">
-            <button id="pv_id_8_1_header_action" class="p-stepper-action" role="tab" aria-controls="pv_id_8_1_content" data-pc-section="action" @click="clickCallback">
-              <span :class="['p-stepper-number', { 'step-inactive': index < activeStep }]" data-pc-section="number">{{ index + 1 }}</span>
-              <span :class="['p-stepper-title', { 'step-inactive': index < activeStep }]" data-pc-section="title">
-                {{ `Request creation of new business assessment data from ${demanderName}` }}
-              </span>
-            </button>
-          </template>
-          <template #content="{ prevCallback, nextCallback }">
-            <div class="flex flex-column">
-              <Button class="step-button"
-                      v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
-                      @click="requestCreationOfData()">Request New Data</Button>
-            </div>
-            <div class="flex p-2 gap-2">
-              <Button class="button-back" label="Back" severity="secondary" @click="prevCallback" />
-              <Button class="button-next" label="Next" @click="nextCallback" />
-            </div>
-          </template>
-        </StepperPanel>
-
-        <StepperPanel>
-          <template #header="{ index, clickCallback }">
-            <button id="pv_id_8_1_header_action" class="p-stepper-action" role="tab" aria-controls="pv_id_8_1_content" data-pc-section="action" @click="clickCallback">
-              <span :class="['p-stepper-number', { 'step-inactive': index < activeStep }]" data-pc-section="number">{{ index + 1 }}</span>
-              <span :class="['p-stepper-title', { 'step-inactive': index < activeStep }]" data-pc-section="title">
-                {{ `Create an offer for ${demanderName}` }}
-              </span>
-            </button>
-          </template>
-          <template #content="{ prevCallback, nextCallback}">
-            <div class="flex flex-column">
-              <div class="dropdown-container">
-                <span>Annual percentage rate %:</span>
-                <InputNumber id="amount" type="number" :maxFractionDigits="2" v-model="enteredAnnualPercentageRate"/>
-              </div>
-              <div class="dropdown-container">
-                <span>Loan terms:</span>
-                <Dropdown v-model="selectedLoanTerm" :options="loanTerms" optionLabel="label" placeholder="Select loan term"/>
-              </div>
-              <Button class="step-button" :disabled="!isAccessRequestGranted || isOfferCreated"
-                      @click="createOfferResource(props.demandUri, accessRequestUri!)">Create Offer</Button>
-              <span class="offerAcceptedStatus" v-if="hasOrderForAnyOfferForThisDemand">
-                &check; Offer accepted
-              </span>
-              <span class="offerAcceptedStatus" v-if="!hasOrderForAnyOfferForThisDemand && isOfferCreated">
-                <span v-if="offerAccessRequests.length > 0 && !offerIsAccessible.some(response => response === 'true')">
-                  <!-- Make offer accessible -->
-                  <span v-for="offerAccessRequest in offerAccessRequests" :key="offerAccessRequest">
-                    <Button type="submit" class="step-button"
-                            @click="handleAuthorizationRequest(offerAccessRequest)"> Grant  {{ demanderName }} access to offer
-                    </Button>
-                  </span>
-                </span>
-                <span v-else>
-                  &#9749; Waiting for response
-                </span>
-              </span>
-            </div>
-            <div class="flex p-2">
-                <Button class="button-back" label="Back" severity="secondary" @click="prevCallback" />
-                <Button class="button-next" label="Next" @click="nextCallback" />
-            </div>
-          </template>
-        </StepperPanel>
-
-        <StepperPanel>
-          <template #header="{ index, clickCallback }">
-            <button id="pv_id_8_1_header_action" class="p-stepper-action" role="tab" aria-controls="pv_id_8_1_content" data-pc-section="action" @click="clickCallback">
-              <span :class="['p-stepper-number', { 'step-inactive': index < activeStep }]" data-pc-section="number">{{ index + 1 }}</span>
-              <span :class="['p-stepper-title', { 'step-inactive': index < activeStep }]" data-pc-section="title">
-                {{ `Termination of business relation` }}
-              </span>
-            </button>
-          </template>
-          <template #content="{ prevCallback  }">
-            <div class="flex flex-column">
-              <Button v-bind:disabled="!(hasOrderForAnyOfferForThisDemand && !hasTerminatedOrder)"
-                      class="step-button" @click="SetTerminationFlagInOrder(offersForDemand)">Terminate business relation
-              </Button>
-              <span v-if="hasTerminatedOrder"> ❌ Credit contract terminated!</span>
-            </div>
-            <div class="flex p-2 gap-2">
-              <Button class="button-back" label="Back" severity="secondary" @click="prevCallback" />
-            </div>
-          </template>
-        </StepperPanel>
-
-      </Stepper>
-
-      <ul class="flex flex-column gap-2">
-        <li class="flex align-items-center gap-2">
-        </li>
-        <li class="flex align-items-center gap-2">
-        </li>
-      </ul>
-    </div>
-
-    <div class="content-right">
-      <div class="content-right-side">
-        <p class="amount-label">Amount</p>
-        <p class="amount-value">{{ amount }} {{ currency }}</p>
-      </div>
-
-      <div class="demand">
-        <a :href="props.demandUri">
-          Demand
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0504 10L7 3.97107L8.13615 3L14 10L8.13615 17L7 16.0289L12.0504 10Z" fill="black" fill-opacity="0.9"/>
-          </svg>
-        </a>
-      </div>
-    </div>
+          </div>
+        </div>
+        <Button v-if="hasOrderForAnyOfferForThisDemand && !hasTerminatedOrder" severity="danger"
+                class="step-button text-0" @click="SetTerminationFlagInOrder(offersForDemand)">Terminate business relation
+        </Button>
+        <Button v-else-if="currentState !== STATES.Terminated" class="step-button" :disabled="(!isAccessRequestGranted || isOfferCreated || currentState === STATES.PendingDataRequest) && !(currentState === STATES.DataSuccessfullyProvided)"
+                @click="createOfferResource(props.demandUri, accessRequestUri!)">Create Offer and grant Access</Button>
+      </template>
+    </Card>
   </div>
+  <Dialog v-model:visible="isDialogVisible" modal header="Requested business assessment data" :style="{ width: '55rem' }">
+    <div v-if="!businessDataFetched">
+      <Skeleton width="100%" height="300px" ></Skeleton>
+      <Skeleton width="100%" height="50px" class="mb-5 mt-2"></Skeleton>
+    </div>
+    <BusinessData v-if="businessDataFetched" :store="state.businessAssessmentStore" />
+    <div class="py-4" v-if="businessDataFetched">
+      <div class="flex justify-content-end gap-2" v-if="(currentState === STATES.OfferAccepted) || (currentState === STATES.Terminated)">
+        <Button type="button" label="Close" severity="secondary" @click="isDialogVisible = false"></Button>
+      </div>
+      <div v-else class="flex justify-content-end gap-2">
+        <Button type="button" label="Accept provided Data" @click="isDialogVisible = false"></Button>
+        <Button type="button" label="Request New Data" severity="secondary"
+                v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
+                @click="requestCreationOfData()">Request New Data</Button>
+        <Button type="button" label="Cancel" severity="secondary" @click="isDialogVisible = false"></Button>
+      </div>
+    </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -198,8 +120,19 @@ import {AxiosResponse} from 'axios';
 import {Literal, NamedNode, Store, Writer} from 'n3';
 import {useToast} from 'primevue/usetoast';
 import {computed, reactive, Ref, ref, watch} from 'vue';
+import Card from "primevue/card";
+import {DacklTextInput} from "@shared/components";
+import {STATES} from "@/enums/states";
+import {TAB_STATE} from "@/enums/tabsState";
+import {
+  businessAssessmentTree,
+  documentCreationDemandShapeTreeUri,
+  offerShapeTreeUri,
+  orderShapeTreeUri
+} from "@/constatns/solid-urls";
+import StatusChip from "/src/components/StatusChip.vue";
 
-const props = defineProps<{ demandUri: string }>();
+const props = defineProps<{ demandUri: string, demandState:string }>();
 const {accessInbox, authAgent, memberOf} = useSolidProfile()
 const toast = useToast();
 const appMemory = useCache();
@@ -208,6 +141,7 @@ const {session} = useSolidSession();
 let businessDataFetched = ref(false);
 const enteredAnnualPercentageRate = ref(1.08);
 const selectedLoanTerm = ref({label: "60 months", value: "5"});
+const isDialogVisible = ref(false);
 const loanTerms = [
   {label: "6 months", value: "0.5"},
   {label: "12 months", value: "1"},
@@ -219,22 +153,18 @@ const loanTerms = [
 
 const selectedShapeTree = ref({
   label: "Business Assessment 2023",
-  value: "https://solid.aifb.kit.edu/shapes/mandat/businessAssessment.tree#businessAssessmentTree"
+  value: businessAssessmentTree
 });
 const shapeTrees = [
   {
     label: "Business Assessment 2022",
-    value: "https://solid.aifb.kit.edu/shapes/mandat/businessAssessment.tree#businessAssessmentTree"
+    value: businessAssessmentTree
   },
   {
     label: "Business Assessment 2023",
-    value: "https://solid.aifb.kit.edu/shapes/mandat/businessAssessment.tree#businessAssessmentTree"
+    value: businessAssessmentTree
   }
 ];
-
-const orderShapeTreeUri = 'https://solid.aifb.kit.edu/shapes/mandat/credit.tree#creditOrderTree';
-const offerShapeTreeUri = 'https://solid.aifb.kit.edu/shapes/mandat/credit.tree#creditOfferTree';
-const documentCreationDemandShapeTreeUri = 'https://solid.aifb.kit.edu/shapes/mandat/document.tree#documentCreationDemandTree';
 
 const state = reactive({
   demandStore: new Store(),
@@ -243,6 +173,7 @@ const state = reactive({
   demanderStore: new Store(),
   businessAssessmentStore : new Store()
 });
+const emit = defineEmits(["LoanType"])
 
 async function fetchStoreOf(uri: string): Promise<Store> {
   return getResource(uri, session)
@@ -274,7 +205,6 @@ async function fillItemStoresIntoStore(itemUris: string[], store: Store, flag?:R
 }
 
 function refreshState() {
-  setActiveProcessStep();
   state.demandStore = new Store()
   state.offerStore = new Store()
   state.orderStore = new Store()
@@ -289,8 +219,7 @@ const isAccessRequestGranted = computed(() => state.demandStore.getQuads(props.d
 const amount = computed(() => state.demandStore.getObjects(null, SCHEMA("amount"), null)[0]?.value);
 const currency = computed(() => state.demandStore.getObjects(null, SCHEMA("currency"), null)[0]?.value);
 const demanderUri = computed(() => state.demandStore.getQuads(null, SCHEMA("seeks"), props.demandUri, null)[0]?.subject?.value);
-let activeStep = computed(() => setActiveProcessStep());
-
+let currentDemandState= ref('Demand');
 // DEMANDER
 watch(() => demanderUri.value,
     async () => {
@@ -300,6 +229,9 @@ watch(() => demanderUri.value,
       }
     }, {immediate: true}
 )
+watch(()=> props.demandState,()=> {
+  currentDemandState.value = props.demandState;
+}, {immediate:true});
 const demanderName = computed(() => state.demanderStore.getObjects(null, FOAF("name"), null)[0]?.value);
 const demanderIconUri = computed(() => state.demanderStore.getObjects(null, VCARD("hasPhoto"), null)[0]?.value);
 const demanderAccessInboxUri = computed(() => state.demanderStore.getObjects(null, INTEROP("hasAccessInbox"), null)[0]?.value);
@@ -330,8 +262,52 @@ watch(() => offerAccessRequests.value,
       })
     }, {immediate: true}
 )
+/**
+ * TabState will be used to determine the state of the tab.
+ */
+const tabState = computed( ()=>{
+  if( currentState.value === STATES.Terminated){
+    return TAB_STATE.Terminated;
+  }
+  if( currentState.value === STATES.OfferAccepted){
+    return TAB_STATE.OfferAccepted;
+  }
+  else{
+    return TAB_STATE.Demands;
+  }
+})
 
+/**
+ * CurrentState will be used to determine the state of the demand and the offer.
+*/
+const isDataReady = ref(false);
+setTimeout(() => {
+  isDataReady.value = true;
+}, 1500);
 
+const currentState = computed(() =>{
+  if(isDataReady.value){
+    if (accessRequestUri.value === undefined && !isOfferCreated.value) {
+      return STATES.DataNeeded;
+    }
+    if(!isAccessRequestGranted.value || isAccessRequestGranted.value === 'false'){
+      return STATES.PendingDataRequest;
+    }
+    if (accessRequestUri.value !== undefined && offerAccessRequests.value.length === 0) {
+      return STATES.DataSuccessfullyProvided;
+    }
+    if(hasOrderForAnyOfferForThisDemand.value && !hasTerminatedOrder.value){
+      return STATES.OfferAccepted;
+    }
+    if(hasTerminatedOrder.value){
+      return STATES.Terminated;
+    }
+    if(!(offerAccessRequests.value.length > 0 && !offerIsAccessible.value.some(response => response === 'true')) && !hasTerminatedOrder.value){
+      return STATES.WaitingForResponse;
+    }
+  }
+  return STATES.NoOperation;
+});
 // ORDER
 // meh. this imposes unnecessary requests and memory, should be application wide, but it works and I dont care at this point anymore.
 watch(() => offersForDemand.value,
@@ -354,23 +330,6 @@ watch(() => orderStoreFilledFlag.value == true, () => {
   const terminatedOrders = state.orderStore.getSubjects(CREDIT("isTerminated"), null, null).map(subject => subject.value);
   hasTerminatedOrder.value = acceptedOrders.some(acceptedOrder => terminatedOrders.includes(acceptedOrder));
 });
-
-function setActiveProcessStep(): number {
-  let step = 0;
-  if (accessRequestUri.value === undefined && !isOfferCreated.value) {
-    step = 0;
-  }
-  if (accessRequestUri.value !== undefined && offerAccessRequests.value.length === 0) {
-    step = 1;
-  }
-  if (isAccessRequestGranted.value && offerAccessRequests.value.length > 0) {
-    step = 3;
-  }
-  if(hasOrderForAnyOfferForThisDemand.value){
-    step = 4;
-  }
-  return step;
-}
 
 async function fetchProcessedData() {
   const businessAssessmentUri = await getDataRegistrationContainers(demanderUri.value!, selectedShapeTree.value.value, session);
@@ -486,6 +445,7 @@ async function requestAccessToData() {
 }
 
 async function requestCreationOfData() {
+  isDialogVisible.value = false
   const documentCreationDemandBody = `\
       @prefix schema: <${SCHEMA()}> .
       @prefix credit: <${CREDIT()}> .
@@ -609,7 +569,6 @@ async function patchOfferInDemand(demandURI: string, offerURI: string): Promise<
 
 async function createOfferResource(demand: string, dataAccessRequest: string) {
   const businessAssessmentRegistrations = await getDataRegistrationContainers(demanderUri!.value!, selectedShapeTree.value.value, session);
-
   const body = `
           @prefix : <#>.
           @prefix credit: <${CREDIT()}> .
@@ -654,6 +613,12 @@ async function createOfferResource(demand: string, dataAccessRequest: string) {
     summary: "Offer created successfully",
     life: 5000,
   });
+  setTimeout(()=>{
+    offerAccessRequests.value.forEach(function (offerAccessRequest) {
+      handleAuthorizationRequest(offerAccessRequest)
+    });
+  },5000);
+
 }
 
 async function requestAccessBeingSet(resource: string, forAgent: string) {
@@ -735,7 +700,6 @@ async function requestAccessBeingSet(resource: string, forAgent: string) {
 }
 
 function handleAuthorizationRequest(inspectedAccessRequestURI: string) {
-  console.log(inspectedAccessRequestURI);
   window.open(
       `${authAgent.value}?uri=${encodeURIComponent(
           inspectedAccessRequestURI
@@ -745,7 +709,10 @@ function handleAuthorizationRequest(inspectedAccessRequestURI: string) {
       "_self"
   );
 }
-
+function processDataDialogBox(){
+  isDialogVisible.value = true;
+  fetchProcessedData()
+}
 async function handleAuthorizationRequestRedirect(
     businessResourceURI: string,
     accessRequestURI: string
@@ -782,156 +749,184 @@ async function handleAuthorizationRequestRedirect(
       })
       .then(() => delete appMemory[accessRequestURI]);
 }
+watch(()=> currentState.value, ()=> {
+    if(currentState.value !== STATES.NoOperation){
+      if(currentState.value === STATES.Terminated){
+        emit("LoanType",TAB_STATE.Terminated);
+      }
+      else if(currentState.value === STATES.OfferAccepted){
+        emit("LoanType",TAB_STATE.OfferAccepted);
+      }
+      else{
+        emit("LoanType",TAB_STATE.Demands);
+      }
+    }
+    }, {immediate:true}
+);
 </script>
 
 <style>
-.container {
-  display: flex;
-  border-radius: 0.5rem;
-  box-shadow: 0px 1px 6px 0px rgba(44, 51, 53, 0.06), 0px 1px 24px 0px rgba(44, 51, 53, 0.09);
-  overflow: hidden;
-  margin-left: 1rem;
-  margin-right: 2rem;
-}
-
-.content-left {
-  flex: 1;
-  background-color: white;
-  padding: 1.5rem;
-}
-
-.content-right {
-  width: 21rem;
-  background-color: rgba(208, 222, 227, 1);
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.p-stepper-number {
-  &.step-inactive {
-    background-color: rgb(200, 200, 200);
+.p-card {
+  .p-card-content {
+    padding: 0;
+  }
+  .p-card-body {
+    padding-top:0px;
   }
 }
 
-.p-stepper-title {
-  font-family: "Noto Sans Display", Arial, sans-serif;
-  font-weight: 500;
-  font-size: 1rem;
-  color: rgba(0, 0, 0, 1);
 
-  &.step-inactive {
-    color: rgba(0, 0, 0, 0.6);
-  }
+
+.p-disabled{
+  background-color: rgba(237, 240, 243, 1); /* Change to your desired color */
+  cursor: not-allowed; /* Optional: Change cursor style */
 }
-
-.dropdown-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.p-dropdown-panel {
-  /* causes known bug: https://github.com/primefaces/primevue/issues/4043 */
-  /* display: none; */
-}
-
-.step-button {
-  color: rgba(0, 108, 110, 1);
-  text-decoration: underline;
-  width: fit-content;
-  font-weight: bold;
-  border: none;
-  margin-left: 0.5rem;
-
-  &:hover {
-    background-color: rgba(65, 132, 153, 0.2);
+  .container {
+    display: flex;
+    border-radius: 0.5rem;
+    box-shadow: 0px 1px 6px 0px rgba(44, 51, 53, 0.06), 0px 1px 24px 0px rgba(44, 51, 53, 0.09);
+    overflow: hidden;
+    margin-left: 1rem;
+    margin-right: 2rem;
   }
 
-  &:disabled {
-    color: rgba(0, 0, 0, 0.7);
-  }
-}
-
-.button-next {
-  color: rgba(0, 0, 0, 0.9);
-  font-weight: 500;
-  min-width: 4rem;
-  background: rgba(153, 232, 39, 1);
-  border-radius: 4px;
-  box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
-  &:hover {
-    outline-color: rgba(32, 151, 12, 0.1);
-  }
-}
-
-.button-back {
-  color: rgba(0, 0, 0, 0.9);
-  font-weight: 500;
-  min-width: 4rem;
-  background: rgba(246, 247, 249, 1);
-  border-radius: 4px;
-  box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
-
-  &:hover {
-    outline-color: rgba(0, 0, 0, 0.15);
-  }
-}
-
-.refresh-container {
-  display: none;
-  position: relative;
-
-  Button {
-    position: absolute;
-    top: 0;
-    right: -0.5rem;
-    z-index: 1;
-  }
-}
-
-.content-right-side {
-  width: 100%;
-
-  .amount-label {
-    text-align: right;
-
+  .content-left {
+    flex: 1;
+    background-color: white;
+    padding: 1.5rem;
   }
 
-  .amount-value {
-    font-size: 2rem;
+  .content-right {
+    width: 21rem;
+    background-color: rgba(208, 222, 227, 1);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .p-stepper-number {
+    &.step-inactive {
+      background-color: rgb(200, 200, 200);
+    }
+  }
+
+  .p-stepper-title {
+    font-family: "Noto Sans Display", Arial, sans-serif;
     font-weight: 500;
+    font-size: 1rem;
     color: rgba(0, 0, 0, 1);
-    text-align: right;
+
+    &.step-inactive {
+      color: rgba(0, 0, 0, 0.6);
+    }
   }
-}
 
-.demand {
-  display: flex;
-  justify-content: flex-end;
-
-  a {
+  .dropdown-container {
     display: flex;
     align-items: center;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.9);
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+    margin-bottom: 0.5rem;
   }
-}
 
-p {
-  margin: 0;
-}
+  .p-dropdown-panel {
+    /* causes known bug: https://github.com/primefaces/primevue/issues/4043 */
+    /* display: none; */
+  }
 
-a {
-  color: white;
-}
+  .step-button {
+    color:black;
+    width: fit-content;
+    font-weight: bold;
+    border: none;
+    margin-left: 0.5rem;
 
-hr {
-  border: 1px solid var(--surface-d);
-}
+    &:hover {
+      background-color: rgba(65, 132, 153, 0.2);
+    }
+
+    &:disabled {
+      color: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .button-next {
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 500;
+    min-width: 4rem;
+    background: rgba(153, 232, 39, 1);
+    border-radius: 4px;
+    box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
+    &:hover {
+      outline-color: rgba(32, 151, 12, 0.1);
+    }
+  }
+
+  .button-back {
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 500;
+    min-width: 4rem;
+    background: rgba(246, 247, 249, 1);
+    border-radius: 4px;
+    box-shadow: 0px 1px 4px 0px rgba(44, 51, 53, 0.07), 0px 2px 3px 0px rgba(44, 51, 53, 0.06), 0px 2px 1px 0px rgba(44, 51, 53, 0.12), 0px 1px 0px 0px rgba(3, 59, 74, 0.46);
+
+    &:hover {
+      outline-color: rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .refresh-container {
+    display: none;
+    position: relative;
+
+    Button {
+      position: absolute;
+      top: 0;
+      right: -0.5rem;
+      z-index: 1;
+    }
+  }
+
+  .content-right-side {
+    width: 100%;
+
+    .amount-label {
+      text-align: right;
+
+    }
+
+    .amount-value {
+      font-size: 2rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 1);
+      text-align: right;
+    }
+  }
+
+  .demand {
+    display: flex;
+    justify-content: flex-end;
+
+    a {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.9);
+    }
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: white;
+  }
+
+  hr {
+    border: 1px solid var(--surface-d);
+  }
 </style>
