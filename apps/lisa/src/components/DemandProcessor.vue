@@ -1,5 +1,5 @@
 <template>
-  <div v-show="tabState === currentDemandState" >
+  <div v-show="tabState === currentDemandState" v-if="currentState!== STATES.NoOperation">
     <Card>
       <template #content>
         <div class="grid">
@@ -37,7 +37,7 @@
               <p class="pb-4 text-sm font-medium">{{selectedShapeTree.label}}</p>
             </div>
             <Button class="step-button"
-                    v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
+                    v-bind:disabled="isDialogShowDataBtnDisabled"
                     @click="processDataDialogBox()">Show Data</Button>
           </div>
           <div v-else-if="currentState === STATES.WaitingForResponse || currentState === STATES.OfferAccepted || currentState === STATES.Terminated" class=" gap-2 ml-2 py-2">
@@ -63,14 +63,16 @@
             </div>
           </div>
         </div>
-        <Button v-if="hasOrderForAnyOfferForThisDemand && !hasTerminatedOrder" severity="danger"
+        <Button v-if="isTerminateBtnVisible" severity="danger"
                 class="step-button text-0" @click="SetTerminationFlagInOrder(offersForDemand)">Terminate business relation
         </Button>
-        <Button v-else-if="currentState !== STATES.Terminated" class="step-button" :disabled="(!isAccessRequestGranted || isOfferCreated || currentState === STATES.PendingDataRequest) && !(currentState === STATES.DataSuccessfullyProvided)"
+        <Button v-else-if="currentState !== STATES.Terminated" class="step-button" :disabled="isCreateOfferBtnDisabled"
                 @click="createOfferResource(props.demandUri, accessRequestUri!)">Create Offer and grant Access</Button>
       </template>
     </Card>
   </div>
+
+
   <Dialog v-model:visible="isDialogVisible" modal header="Requested business assessment data" :style="{ width: '55rem' }">
     <div v-if="!businessDataFetched">
       <Skeleton width="100%" height="300px" ></Skeleton>
@@ -78,13 +80,13 @@
     </div>
     <BusinessData v-if="businessDataFetched" :store="state.businessAssessmentStore" />
     <div class="py-4" v-if="businessDataFetched">
-      <div class="flex justify-content-end gap-2" v-if="(currentState === STATES.OfferAccepted) || (currentState === STATES.Terminated)">
+      <div class="flex justify-content-end gap-2" v-if="isDialogCloseBtnVisible">
         <Button type="button" label="Close" severity="secondary" @click="isDialogVisible = false"></Button>
       </div>
       <div v-else class="flex justify-content-end gap-2">
         <Button type="button" label="Accept provided Data" @click="isDialogVisible = false"></Button>
         <Button type="button" label="Request New Data" severity="secondary"
-                v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
+                v-bind:disabled="isDialogRequestNewDataBtnDisabled"
                 @click="requestCreationOfData()">Request New Data</Button>
         <Button type="button" label="Cancel" severity="secondary" @click="isDialogVisible = false"></Button>
       </div>
@@ -96,23 +98,18 @@
 import BusinessData from "@/components/BusinessDataPanel.vue";
 import {useCache, useSolidProfile, useSolidSession} from '@shared/composables';
 import {
-  ACL,
   createResource,
   createResourceInAnyRegistrationOfShape,
   CREDIT,
   FOAF,
-  GDPRP,
   getContainerItems,
   getDataRegistrationContainers,
   getLocationHeader,
   getResource,
   INTEROP,
-  LDP,
   parseToN3,
   putResource,
-  RDFS,
   SCHEMA,
-  SKOS,
   VCARD,
   XSD
 } from '@shared/solid';
@@ -131,12 +128,21 @@ import {
   orderShapeTreeUri
 } from "@/constatns/solid-urls";
 import StatusChip from "@/components/StatusChip.vue";
+import {
+  getAccessBeingSetBody,
+  getCreateOfferResourceBody,
+  getDataBody,
+  getDocumentCreationDemandBody
+} from "@/utils/request-access";
 
+import { storeDemands } from "@/utils/demands-data";
 const props = defineProps<{ demandUri: string, demandState:string }>();
 const {accessInbox, authAgent, memberOf} = useSolidProfile()
 const toast = useToast();
 const appMemory = useCache();
 const {session} = useSolidSession();
+
+
 
 let businessDataFetched = ref(false);
 const enteredAnnualPercentageRate = ref(1.08);
@@ -173,7 +179,6 @@ const state = reactive({
   demanderStore: new Store(),
   businessAssessmentStore : new Store()
 });
-const emit = defineEmits(["LoanType"])
 
 async function fetchStoreOf(uri: string): Promise<Store> {
   return getResource(uri, session)
@@ -275,39 +280,34 @@ const tabState = computed( ()=>{
   else{
     return TAB_STATE.Demands;
   }
-})
+});
 
 /**
  * CurrentState will be used to determine the state of the demand and the offer.
 */
-const isDataReady = ref(false);
-setTimeout(() => {
-  isDataReady.value = true;
-}, 1500);
 
 const currentState = computed(() =>{
-  if(isDataReady.value){
-    if (accessRequestUri.value === undefined && !isOfferCreated.value) {
-      return STATES.DataNeeded;
-    }
-    if(!isAccessRequestGranted.value || isAccessRequestGranted.value === 'false'){
-      return STATES.PendingDataRequest;
-    }
-    if (accessRequestUri.value !== undefined && offerAccessRequests.value.length === 0) {
-      return STATES.DataSuccessfullyProvided;
-    }
-    if(hasOrderForAnyOfferForThisDemand.value && !hasTerminatedOrder.value){
-      return STATES.OfferAccepted;
-    }
-    if(hasTerminatedOrder.value){
-      return STATES.Terminated;
-    }
-    if(!(offerAccessRequests.value.length > 0 && !offerIsAccessible.value.some(response => response === 'true')) && !hasTerminatedOrder.value){
-      return STATES.WaitingForResponse;
-    }
+  if (accessRequestUri.value === undefined && !isOfferCreated.value) {
+    return STATES.DataNeeded;
+  }
+  if(!isAccessRequestGranted.value || isAccessRequestGranted.value === 'false'){
+    return STATES.PendingDataRequest;
+  }
+  if (accessRequestUri.value !== undefined && offerAccessRequests.value.length === 0) {
+    return STATES.DataSuccessfullyProvided;
+  }
+  if(hasOrderForAnyOfferForThisDemand.value && !hasTerminatedOrder.value){
+    return STATES.OfferAccepted
+  }
+  if(!(offerAccessRequests.value.length > 0 && !offerIsAccessible.value.some(response => response === 'true')) && !hasTerminatedOrder.value){
+    return STATES.WaitingForResponse;
+  }
+  if(hasTerminatedOrder.value){
+    return STATES.Terminated;
   }
   return STATES.NoOperation;
 });
+
 // ORDER
 // meh. this imposes unnecessary requests and memory, should be application wide, but it works and I dont care at this point anymore.
 watch(() => offersForDemand.value,
@@ -330,7 +330,15 @@ watch(() => orderStoreFilledFlag.value == true, () => {
   const terminatedOrders = state.orderStore.getSubjects(CREDIT("isTerminated"), null, null).map(subject => subject.value);
   hasTerminatedOrder.value = acceptedOrders.some(acceptedOrder => terminatedOrders.includes(acceptedOrder));
 });
+/*
+* UI Computed Values
+* */
+const isTerminateBtnVisible = computed(()=> hasOrderForAnyOfferForThisDemand.value && !hasTerminatedOrder.value);
+const isCreateOfferBtnDisabled = computed(() => (!isAccessRequestGranted.value || isOfferCreated || currentState.value === STATES.PendingDataRequest) && !(currentState.value === STATES.DataSuccessfullyProvided));
 
+const isDialogCloseBtnVisible = computed(() => ((currentState.value === STATES.OfferAccepted) || (currentState.value === STATES.Terminated)));
+const isDialogShowDataBtnDisabled = computed(() => (!isAccessRequestGranted.value || isAccessRequestGranted.value === 'false'));
+const isDialogRequestNewDataBtnDisabled = computed(() => (!isAccessRequestGranted.value || isAccessRequestGranted.value === 'false'));
 async function fetchProcessedData() {
   const businessAssessmentUri = await getDataRegistrationContainers(demanderUri.value!, selectedShapeTree.value.value, session);
   const items = await getContainerItems(businessAssessmentUri[0], session);
@@ -369,60 +377,8 @@ async function patchBusinessResourceToHaveAccessRequest(businessResource: string
 }
 
 async function requestAccessToData() {
-  const accessRequestBody = `@prefix interop: <${INTEROP()}> .
-    @prefix ldp: <${LDP()}> .
-    @prefix skos: <${SKOS()}> .
-    @prefix credit: <${CREDIT()}> .
-    @prefix xsd: <${XSD()}> .
-    @prefix acl: <${ACL()}> .
-    @prefix gdprp: <${GDPRP()}> .
-    @prefix rdfs: <${RDFS()}> .
 
-    # This could be hosted at the profle document of the application or social agent or at a
-    # central location (e.g. together with the shapes/shapetress) for "standardized" access needs
-    <#bwaAccessNeed>
-      a interop:AccessNeed ;
-      interop:accessMode acl:Read ;
-      interop:registeredShapeTree <${selectedShapeTree.value.value}> ;
-      interop:accessNecessity interop:accessRequired .
-
-    <#bwaAccessNeedGroup>
-      a interop:AccessNeedGroup ;
-      interop:hasAccessDescriptionSet <#bwaAccessDescriptionSet> ;
-      interop:accessNecessity interop:accessRequired ;
-      interop:accessScenario interop:sharedAccess ;
-      interop:authenticatesAs interop:SocialAgent ;
-      interop:hasAccessNeed <#bwaAccessNeed> .
-
-    <#bwaAccessDescriptionSet>
-      a interop:AccessDescriptionSet ;
-      interop:usesLanguage "de"^^xsd:language .
-
-    # This is hosted at the profile document of the agent or application
-    <#bwaAccessNeedGroupDescription>
-      a interop:AccessNeedGroupDescription ;
-      interop:inAccessDescriptionSet <#bwaAccessDescriptionSet> ;
-      interop:hasAccessNeedGroup <#bwaAccessNeedGroup> ;
-      skos:prefLabel "Access business analyses (Group)"@en ;
-      skos:definition "The bank needs to know your business analyses in order to prepare a suitable loan offer for you"@en .
-
-    <#bwaAccessNeedDescription>
-      a interop:AccessNeedDescription ;
-      interop:inAccessDescriptionSet <#bwaAccessDescriptionSet> ;
-      interop:hasAccessNeed <#bwaAccessNeed> ;
-      skos:prefLabel "Access business analyses"@en ;
-      skos:definition "The bank needs to know your business analyses in order to prepare a suitable loan offer for you"@en .
-
-    # Goes into the access inbox of sme
-    <#bwaAccessRequest>
-      a interop:AccessRequest ;
-      gdprp:purposeForProcessing gdprp:contractualObligations ;
-      interop:fromSocialAgent <${memberOf.value}> ;
-      interop:toSocialAgent  <${demanderUri.value}> ;
-      interop:hasAccessNeedGroup <#bwaAccessNeedGroup> ;
-
-      rdfs:seeAlso <${props.demandUri}>.`;
-
+  const accessRequestBody = getDataBody(props.demandUri,demanderUri.value, selectedShapeTree.value.value, memberOf.value);
   const accessRequestUri = await createResource(demanderAccessInboxUri!.value!, accessRequestBody, session)
       .catch((err) => {
         toast.add({
@@ -446,16 +402,7 @@ async function requestAccessToData() {
 
 async function requestCreationOfData() {
   isDialogVisible.value = false
-  const documentCreationDemandBody = `\
-      @prefix schema: <${SCHEMA()}> .
-      @prefix credit: <${CREDIT()}> .
-      @prefix interop: <${INTEROP()}> .
-      <> a schema:Demand ;
-      interop:fromSocialAgent <${memberOf.value}> ;
-      credit:derivedFromDemand <${props.demandUri}> ;
-      interop:registeredShapeTree <${selectedShapeTree.value.value}> .
-      <${memberOf.value}> schema:seeks <> .
-    `;
+  const documentCreationDemandBody = getDocumentCreationDemandBody(memberOf.value,props.demandUri,selectedShapeTree.value.value);
   const documentCreationDemandContainerUris = await getDataRegistrationContainers(demanderUri.value!, documentCreationDemandShapeTreeUri, session);
   const documentCreationDemandURI = await createResource(documentCreationDemandContainerUris[0], documentCreationDemandBody, session)
       .catch((err) => {
@@ -569,28 +516,18 @@ async function patchOfferInDemand(demandURI: string, offerURI: string): Promise<
 
 async function createOfferResource(demand: string, dataAccessRequest: string) {
   const businessAssessmentRegistrations = await getDataRegistrationContainers(demanderUri!.value!, selectedShapeTree.value.value, session);
-  const body = `
-          @prefix : <#>.
-          @prefix credit: <${CREDIT()}> .
-          @prefix schema: <${SCHEMA()}> .
-          <> a credit:Offer;
-            schema:itemOffered <#credit>;
-            schema:availability schema:InStock;
-            credit:derivedFromDemand <${demand}> ;
-            credit:derivedFromData ${businessAssessmentRegistrations.map(r => "<" + r + ">").join(", ")} ;
-            credit:hasUnderlyingRequest <${dataAccessRequest}> .
-          <${memberOf.value}> schema:offers <>  .
-          <${demanderUri.value}> schema:seeks <>  .
-          <#credit>
-                  a schema:LoanOrCredit ;
-                  schema:amount "${amount.value}";
-                  schema:currency "${currency.value}";
-                  schema:annualPercentageRate "${enteredAnnualPercentageRate.value}";
-                  schema:loanTerm <#duration>.
-            <#duration>
-              a schema:QuantitativeValue;
-              schema:value "${selectedLoanTerm.value.value} years".
-            `
+  const derivedFromData = businessAssessmentRegistrations.map(r => "<" + r + ">").join(", ");
+  const body = getCreateOfferResourceBody(
+      demand,
+      derivedFromData,
+      dataAccessRequest,
+      memberOf.value,
+      demanderUri.value,
+      amount.value,
+      currency.value,
+      enteredAnnualPercentageRate.value,
+      selectedLoanTerm.value.value
+  );
   const offerLocation = await createResourceInAnyRegistrationOfShape(memberOf.value!, offerShapeTreeUri, body, session)
       .catch((err) => {
         toast.add({
@@ -622,70 +559,7 @@ async function createOfferResource(demand: string, dataAccessRequest: string) {
 }
 
 async function requestAccessBeingSet(resource: string, forAgent: string) {
-  const body = `@prefix interop: <${INTEROP()}> .
-    @prefix ldp: <${LDP()}> .
-    @prefix skos: <${SKOS()}> .
-    @prefix credit: <${CREDIT()}> .
-    @prefix xsd: <${XSD()}> .
-    @prefix acl: <${ACL()}> .
-    @prefix gdprp: <${GDPRP()}> .
-    @prefix rdfs: <${RDFS()}> .
-
-    <#accessRequest>
-      a interop:AccessRequest ;
-      gdprp:purposeForProcessing gdprp:contractualObligations ;
-      interop:fromSocialAgent <${memberOf.value}> ;
-      interop:toSocialAgent  <${memberOf.value}> ;
-      interop:forSocialAgent <${forAgent}> ;
-      interop:hasAccessNeedGroup <#accessNeedGroup> ;
-      rdfs:seeAlso <${props.demandUri}>.
-
-    <#accessNeedGroupDescription>
-      a interop:AccessNeedGroupDescription ;
-      interop:inAccessDescriptionSet <#accessDescriptionSet> ;
-      interop:hasAccessNeedGroup <#accessNeedGroup> ;
-      skos:prefLabel "Zugriff Offer und Order container"@de ;
-      skos:definition "Gib das Angebot frei."@de .
-
-    <#accessNeedGroup>
-      a interop:AccessNeedGroup ;
-      interop:hasAccessDescriptionSet <#accessDescriptionSet> ;
-      interop:accessNecessity interop:accessRequired ;
-      interop:accessScenario interop:sharedAccess ;
-      interop:authenticatesAs interop:SocialAgent ;
-      interop:hasAccessNeed <#accessNeed>, <#accessNeed2> .
-
-    <#accessNeedDescription>
-      a interop:AccessNeedDescription ;
-      interop:inAccessDescriptionSet <#accessNeedGroupDescription> ;
-      interop:hasAccessNeed <#accessNeed> ;
-      skos:prefLabel "Zugriff Offer"@de ;
-      skos:definition "Gib das Angebot frei."@de .
-
-    <#accessNeed>
-      a interop:AccessNeed ;
-      interop:accessMode acl:Read ;
-      interop:registeredShapeTree <https://solid.aifb.kit.edu/shapes/mandat/credit.tree#creditOfferTree> ;
-      interop:hasDataInstance <${resource}> ;
-      interop:accessNecessity interop:accessRequired .
-
-    <#accessNeedDescription2>
-      a interop:AccessNeedDescription ;
-      interop:inAccessDescriptionSet <#accessNeedGroupDescription> ;
-      interop:hasAccessNeed <#accessNeed2> ;
-      skos:prefLabel "Zugriff Order"@de ;
-      skos:definition "Gib den Order Container frei."@de .
-
-    <#accessNeed2>
-      a interop:AccessNeed ;
-      interop:accessMode acl:Append ;
-      interop:registeredShapeTree <https://solid.aifb.kit.edu/shapes/mandat/credit.tree#creditOrderTree> ;
-      interop:accessNecessity interop:accessRequired .
-
-    <#accessDescriptionSet>
-      a interop:AccessDescriptionSet ;
-      interop:usesLanguage "de"^^xsd:language .`;
-
+  const body = getAccessBeingSetBody(memberOf.value, forAgent, props.demandUri, resource);
   return createResource(accessInbox.value, body, session)
       .catch((err) => {
         toast.add({
@@ -749,20 +623,18 @@ async function handleAuthorizationRequestRedirect(
       })
       .then(() => delete appMemory[accessRequestURI]);
 }
-watch(()=> currentState.value, ()=> {
-    if(currentState.value !== STATES.NoOperation){
-      if(currentState.value === STATES.Terminated){
-        emit("LoanType",TAB_STATE.Terminated);
-      }
-      else if(currentState.value === STATES.OfferAccepted){
-        emit("LoanType",TAB_STATE.OfferAccepted);
-      }
-      else{
-        emit("LoanType",TAB_STATE.Demands);
-      }
-    }
-    }, {immediate:true}
-);
+setTimeout(()=>{
+  const id = props.demandUri.slice(props.demandUri.lastIndexOf('/')+1);
+  const data:demandData ={
+    "id": id,
+    "name": demanderName.value,
+    "status": currentState.value,
+    "amount": amount.value,
+    "tab": tabState.value
+  };
+
+  storeDemands(data);
+},1000);
 </script>
 
 <style>
