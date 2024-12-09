@@ -57,11 +57,11 @@
 
 <script setup lang="ts">
 import {useToast} from "primevue/usetoast";
-import {useSolidProfile, useSolidSession} from "@shared/composables";
-import {getDataRegistrationContainers, getResource, LDP, parseToN3} from "@shared/solid";
+import {useSolidProfile, useSolidSession} from "hackathon-demo/libs/composables";
+import {getDataRegistrationContainers, getResource, LDP, parseToN3} from "hackathon-demo/libs/solid";
 import {computed, ref, watch} from "vue";
 import DemandProcessor from "../components/DemandProcessor.vue";
-import {TabItemType, TabList} from "@shared/components";
+import {TabItemType, TabList} from "hackathon-demo/libs/components";
 import DemandSkeleton from "@/components/DemandSkeleton.vue";
 import {TAB_STATE} from "@/enums/tabsState";
 import NoDataFound from "@/components/NoDataFound.vue";
@@ -119,3 +119,4 @@ async function fetchDemandUris(webId: string): Promise<void> {
       .finally(() => isLoading.value = false);
 }
 </script>
+

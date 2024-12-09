@@ -1,9 +1,7 @@
-"use strict";
-
 import {AxiosHeaders, AxiosResponse} from "axios";
 import {Parser, Prefixes, Quad, Store} from "n3";
 import {LDP} from "./namespaces";
-import {Session} from "./solid-oidc-client-browser";
+import {Session} from "./solid-oidc-client-browser/Session";
 
 export interface ParsedN3 {
   store: Store;
@@ -35,15 +33,16 @@ function _checkResponseStatus(
 
 /**
  *
- * @param uri: the URI to strip from its fragment #
+ * @param uri the URI to strip from its fragment #
  * @return substring of the uri prior to fragment #
  */
-function _stripFragment(uri: string): string {
+function _stripFragment(uri: unknown): string {
+  if (typeof uri !== "string") { return "";}
   const indexOfFragment = uri.indexOf("#");
   if (indexOfFragment !== -1) {
     uri = uri.substring(0, indexOfFragment);
   }
-  return uri;
+  return uri as string;
 }
 
 /**

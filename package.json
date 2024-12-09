@@ -5,22 +5,30 @@
   "scripts": {
     "serve": "lerna run serve",
     "build": "lerna run build",
-    "lint": "lerna run lint",
     "test": "lerna run test",
-    "auth:build": "lerna run build --scope auth",
-    "auth:lint": "lerna run lint --scope auth",
-    "auth:serve": "lerna run serve --scope auth",
-    "lisa:build": "lerna run build --scope lisa",
-    "lisa:lint": "lerna run lint --scope lisa",
-    "lisa:serve": "lerna run serve --scope lisa",
-    "max:build": "lerna run build --scope max",
-    "max:lint": "lerna run lint --scope max",
-    "max:serve": "lerna run serve --scope max",
+    "lint": "lerna run lint",
+    "postinstall": "lerna run postinstall",
+    "auth:build": "lerna run build --scope @apps/auth",
+    "auth:lint": "lerna run lint --scope @apps/auth",
+    "auth:serve": "lerna run serve --scope @apps/auth",
+    "lisa:build": "lerna run build --scope @apps/lisa",
+    "lisa:lint": "lerna run lint --scope @apps/lisa",
+    "lisa:serve": "lerna run serve --scope @apps/lisa",
+    "max:build": "lerna run build --scope @apps/max",
+    "max:lint": "lerna run lint --scope @apps/max",
+    "max:serve": "lerna run serve --scope @apps/max",
     "prepare": "husky",
     "start": "npm run serve",
-    "tom:build": "lerna run build --scope tom",
-    "tom:lint": "lerna run lint --scope tom",
-    "tom:serve": "lerna run serve --scope tom"
+    "tom:build": "lerna run build --scope @apps/tom",
+    "tom:lint": "lerna run lint --scope @apps/tom",
+    "tom:serve": "lerna run serve --scope @apps/tom"
+  },
+  "exports": {
+    "./libs/components": "./libs/components",
+    "./libs/composables": "./libs/composables",
+    "./libs/solid": "./libs/solid",
+    "./libs/theme/theme.css": "./libs/theme/dist/theme.css",
+    "./libs/utils": "./libs/utils"
   },
   "dependencies": {
     "@vueuse/components": "^11.1.0",
@@ -33,7 +41,7 @@
     "primevue": "^3.52.0",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
-    "vue-i18n": "^10.0.4",
+    "vue-i18n": "^10.0.5",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {
