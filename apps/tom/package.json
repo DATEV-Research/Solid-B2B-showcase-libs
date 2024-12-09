@@ -24,6 +24,6 @@
   },
   "dependencies": {
     "github-fork-ribbon-css": "^0.2.3",
-    "hackathon-demo": "github:mandat-project/hackathon-demo#353-extract-auth-app"
+    "hackathon-demo": "github:mandat-project/hackathon-demo#market"
   }
 }

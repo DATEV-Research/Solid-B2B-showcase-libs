@@ -141,7 +141,7 @@
   ],
   "main": "index.ts",
   "dependencies": {
-    "hackathon-demo": "github:mandat-project/hackathon-demo#353-extract-auth-app",
+    "hackathon-demo": "github:mandat-project/hackathon-demo#market",
     "vue": "^3.2.13"
   },
   "devDependencies": {

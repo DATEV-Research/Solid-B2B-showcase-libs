@@ -22,7 +22,7 @@
     "dist"
   ],
   "dependencies": {
-    "hackathon-demo": "github:mandat-project/hackathon-demo#353-extract-auth-app",
+    "hackathon-demo": "github:mandat-project/hackathon-demo#market",
     "n3": "^1.23.1",
     "primeflex": "^3.3.1",
     "primeicons": "^6.0.1",

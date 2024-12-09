@@ -14,7 +14,7 @@
     "@vueuse/core": "^11.3.0",
     "axios": "^1.7.8",
     "core-js": "^3.8.3",
-    "hackathon-demo": "github:mandat-project/hackathon-demo#353-extract-auth-app",
+    "hackathon-demo": "github:mandat-project/hackathon-demo#market",
     "jose": "^5.9.6",
     "n3": "^1.23.1",
     "primeflex": "^3.3.1",
