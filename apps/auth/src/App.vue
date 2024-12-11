@@ -32,11 +32,14 @@
 
 <script setup lang="ts">
 import appLogo from "@/assets/logo.svg";
-import {AuthAppHeaderBar} from "hackathon-demo/libs/components";
-import {useSolidProfile, useSolidSession,} from "hackathon-demo/libs/composables";
+import { AuthAppHeaderBar } from "@datev-research/mandat-shared-components";
+import {
+  useSolidProfile,
+  useSolidSession,
+} from "@datev-research/mandat-shared-composables";
 import Card from "primevue/card";
 import Toast from "primevue/toast";
-import {computed} from "vue";
+import { computed } from "vue";
 import router from "./router";
 
 const { session, restoreSession } = useSolidSession();
