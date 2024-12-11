@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - market
+  push:
+    branches:
+      - main
+      - market
 
 jobs:
   install:
