@@ -15,7 +15,8 @@
     "lint": "lerna run lint",
 
     "version": "lerna version",
-    "publish": "lerna publish",
+    "prepublish": "run-s libs:build",
+    "publish": "lerna publish from-package",
 
     "apps:build": "lerna run build --scope \"@apps/*\"",
     "apps:lint": "lerna run lint --scope \"@apps/*\"",

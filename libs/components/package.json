@@ -1,6 +1,6 @@
 {
   "name": "@datev-research/mandat-shared-components",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage": "https://github.com/DATEV-Research/",
   "author": "DATEV eG <info@datev.de> (https://www.datev.de/)",
   "license": "MIT",
@@ -31,6 +31,7 @@
   },
   "files": [
     "dist",
+    "src",
     "index.ts"
   ],
   "main": "index.ts",
