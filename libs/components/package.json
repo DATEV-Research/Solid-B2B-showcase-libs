@@ -62,5 +62,5 @@
   "gitHooks": {
     "pre-commit": "lint-staged"
   },
-  "gitHead": "29e1f1b4cc72e7b2c2539fa737520418b7632503"
+  "gitHead": "b44c8778440b2c8fe3e34a2001c9f9186a1ebd2a"
 }
