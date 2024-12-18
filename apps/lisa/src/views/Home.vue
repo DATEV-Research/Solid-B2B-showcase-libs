@@ -1,10 +1,11 @@
 <template>
-  <TabList class="mt-2 pl-4 w-full" @item-change="tabListItemChange" :model="tabMenu" :active="activeTab" style="background:linear-gradient(90deg, #2e399e 0%, #00c6ff 100%)"/>
-
+  <div class="px-4 pt-3 tab-background">
+    <TabList class="mt-4"  @item-change="tabListItemChange" :model="tabMenu" :active="activeTab" />
+  </div>
   <div class="grid px-1 sm:px-8" >
-    <h1 v-if="activeTab === TAB_STATE.OfferAccepted">Active Loans <Button v-if="session.webId" icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
+    <h1 v-if="activeTab === TAB_STATE.OfferAccepted" class="px-3 font-normal text-4xl md:text-6xl gap-2 flex align-items-center">Active Loans <Button v-if="session.webId" icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
                                                                                @click="fetchDemandUris(memberOf)" /></h1>
-    <h1 v-else >{{activeTab}} <Button v-if="session.webId" icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
+    <h1 v-else class="px-3 font-normal text-4xl md:text-6xl gap-2 flex align-items-center">{{activeTab}} <Button v-if="session.webId" icon="pi pi-refresh" class="p-button-text p-button-rounded p-button-icon-only"
                                           @click="fetchDemandUris(memberOf)" /></h1>
 
     <div class="col-12 flex flex-column" style="background-color:white">
@@ -53,6 +54,17 @@
 .tab:not(.active){
   background-color: #033B4A26;
 }
+.tab-list :deep(.tab){
+  background-color:#CBD5DA;
+  text-color:black;
+}
+.tab-list :deep(.tab_content){
+  color:black;
+}
+.tab-background{
+  background:linear-gradient(90deg, #2e399e 0%, #00c6ff 100%)
+}
+
 </style>
 
 <script setup lang="ts">

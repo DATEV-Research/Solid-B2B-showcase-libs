@@ -26,6 +26,7 @@ function setActive(item: TabItemType): void {
     role="list"
   >
     <TabItem
+      class="px-4"
       role="listitem"
       @click="setActive(item)"
       v-for="item in model"

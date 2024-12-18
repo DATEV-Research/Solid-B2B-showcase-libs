@@ -300,8 +300,8 @@ async function createDemand(demandContainerUris: string[], payload: string) {
         <template #content>
           <SmeCard>
             <SmeCardHeadline>Service Type</SmeCardHeadline>
-            <ul class="list-none gap-5 p-0 flex flex-column md:flex-row">
-              <li v-for="ad of listedAdvertisements" :key="ad" class="md:col-6">
+            <ul class="list-none gap-5 p-0 flex flex-column md:flex-row justify-content-between">
+              <li v-for="ad of listedAdvertisements" :key="ad" class="w-auto flex-grow-1 flex-shrink-1 flex-basis-0">
                 <AdvertisementCard @adClick="adClick" :ad="ad"/>
               </li>
             </ul>
@@ -330,9 +330,9 @@ async function createDemand(demandContainerUris: string[], payload: string) {
             <p class="break-all">{{ chosenAdvertisement }}</p>
             <HorizontalLine/>
             <div role="list" v-if="advertisements" class="flex flex-column gap-3 p-0">
-              <Card role="listitem" v-for="(ad, index) in advertisements" :key="ad.id">
+              <Card role="listitem" class="consumer-credit p-4" v-for="(ad, index) in advertisements" :key="ad.id">
                 <template #header>
-                  <header class="flex gap-4 m-4">
+                  <header class="flex gap-4">
                     <div class="w-6rem h-6rem p-3 bg-bluegray-50 flex justify-content-center align-items-center">
                       <a class="" :href="ad.inbox"><img :src="ad.creatorIconURI" class="max-w-full"></a>
                     </div>
@@ -347,20 +347,20 @@ async function createDemand(demandContainerUris: string[], payload: string) {
                 <template #content>
 
                   <div class="grid">
-                    <div class="col-12 md:col-3">
+                    <div class="col-4 xl:col-3">
                       <p class="my-0 text-xs text-black-alpha-70">Lowest interest rate: </p>
                       <p class="my-0 text-xl font-semibold">{{ad.lowestInterestRate}} %</p>
                     </div>
-                    <div class="col-12 md:col-3">
+                    <div class="col-4 xl:col-3">
                       <p class="my-0 text-xs text-black-alpha-70">Repayment Periods (months)</p>
                       <p class="my-0 text-xl font-semibold">{{ad.minCreditPeriodMonths}} - {{ad.maxCreditPeriodMonths}}</p>
                     </div>
-                    <div class="col-12 md:col-3">
+                    <div class="col-4  xl:col-3 ">
                       <p class="my-0 text-xs text-black-alpha-70">Contact advertiser at:</p>
                       <a class="my-0 text-xl font-semibold" :href="ad.inbox">advertiser</a>
                     </div>
-                    <div class="col-12 md:col-3 align-content-end">
-                      <Button class="w-full md:w-auto" @click="chosedAdvertiser(ad, index)" icon="pi pi-check">
+                    <div class="col-12 mt-2 xl:mt-0 xl:col-3 flex justify-content-end">
+                      <Button class="w-full xl:w-auto" @click="chosedAdvertiser(ad, index)" icon="pi pi-check">
                         Select&nbsp;
                         <span class="md:hidden">Provider</span>
                         <span class="hidden md:inline">{{ ad.label }}</span>
@@ -425,3 +425,15 @@ async function createDemand(demandContainerUris: string[], payload: string) {
   </div>
 </template>
 
+<style scoped>
+
+.p-stepper :deep(.p-stepper-nav) {
+  width:40rem;
+}
+.consumer-credit :deep(.p-card-body){
+  padding:0;
+}
+.consumer-credit :deep(.p-card-content){
+  padding:0;
+}
+</style>

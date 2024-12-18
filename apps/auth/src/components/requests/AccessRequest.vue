@@ -4,7 +4,7 @@
       {{ $t("accessRequest.title") }}
     </template>
     <template #content>
-      <div class="grid">
+      <div class="grid m-0">
         <div class="col-12 md:col">
           <div class="text-black-alpha-60">
             {{ $t("accessRequest.purpose") }}
@@ -121,7 +121,10 @@
     </template>
   </Card>
 
-  <ConfirmDialog :group="'accessRequest-' + informationResourceURI" />
+  <ConfirmDialog
+    :group="'accessRequest-' + informationResourceURI"
+    style="width: 40rem"
+  />
 </template>
 
 <script setup lang="ts">
@@ -413,6 +416,7 @@ function confirmGrantWithAccessReceipt(): void {
     message: t("accessRequest.confirmDialog.message"),
     header: t("accessRequest.confirmDialog.header"),
     rejectLabel: t("accessRequest.confirmDialog.cancel"),
+    rejectClass: "p-button-secondary",
     acceptLabel: t("accessRequest.confirmDialog.authorize"),
     accept: () => {
       // TODO add authorizations from groups and data-authorizations
@@ -431,6 +435,7 @@ function confirmDeclineWithAccessReceipt(): void {
     header: t("accessRequest.declineDialog.header"),
     acceptClass: "p-button-danger",
     rejectLabel: t("accessRequest.declineDialog.cancel"),
+    rejectClass: "p-button-secondary",
     acceptLabel: t("accessRequest.declineDialog.decline"),
     accept: () => {
       declineWithAccessReceipt();

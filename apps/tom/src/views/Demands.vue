@@ -392,7 +392,7 @@ function handleAuthorizationRequest(inspectedAccessRequestURI: string) {
   <ProgressBar v-show="isLoading" mode="indeterminate" style="height: 2px" />
 
   <div role="list" v-if="displayedDemands" class="flex flex-column gap-3 py-0 px-3">
-    <Card :class="{'bg-yellow-100' : highlightAmountValue === demand.amount, ['amount-'+demand.amount]: true }"
+    <Card :class="{'highlight' : highlightAmountValue === demand.amount, ['amount-'+demand.amount]: true }"
           role="listitem" v-for="demand in displayedDemands" :key="demand.id" :data-demand-id="demand.id">
       <template #title>
         <a class="font-normal text-black-alpha-90 no-underline" :href="demand.providerWebID">{{ demand.providerName }}</a>
@@ -483,5 +483,16 @@ function handleAuthorizationRequest(inspectedAccessRequestURI: string) {
 <style scoped>
 .-top-1rem {
   top: -1rem;
+}
+ .p-card :deep(.p-card-content) {
+   padding-top: 0;
+   padding-bottom: 0;
+ }
+.p-card :deep(.p-card-footer) {
+  padding-top: 0;
+}
+.highlight{
+  border: 2px solid rgba(182,202,209,1);
+  background: rgba(246,247,249,1);
 }
 </style>

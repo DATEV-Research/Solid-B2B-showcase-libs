@@ -3,7 +3,7 @@
     <Card :data-demand-id="demandUri">
       <template #content>
         <div class="card-container">
-        <div class="grid">
+        <div class="grid pt-0">
           <div class="col-12" v-if ="currentState === STATES.Terminated" >
             <StatusChip :status="STATES.Terminated"></StatusChip>
           </div>
@@ -13,48 +13,44 @@
           </div>
           <div class="col-6">
             <span>Amount</span>
-            <h2>{{ amount }} - {{ currency }}</h2>
+            <h2>{{ Number(amount).toLocaleString('de-DE') }} - {{ currency }}</h2>
           </div>
         </div>
-        <div class="border-round-2xl p-2" style="background-color:rgba(246, 247, 249, 1);">
-          <div class=" grid gap-3 ml-2 py-2" v-if="currentState === STATES.DataNeeded">
+        <div class="border-round-2xl p-4 ml-2" style="background-color:rgba(246, 247, 249, 1);">
+          <div class=" grid gap-3 pt-0" v-if="currentState === STATES.DataNeeded">
             <StatusChip :status="STATES.DataNeeded"></StatusChip>
-            <div class="w-full ml-2">
+            <div class="w-full">
               <p class="font-medium" >Business Assessment data</p>
             </div>
 
-              <div class="dropdown relative w-full ml-2">
+              <div class="dropdown relative w-full">
                   <label class="z-1 pt-2.5 pl-2 text-sm text-black-alpha-70 absolute w-full">Select data</label>
                   <Dropdown class="w-full h-3.75rem pt-4 mt-1 mb-2 control-shadow" v-model="selectedShapeTree" :options="shapeTrees" option-label="label" />
               </div>
               <Button class="step-button" v-bind:disabled="accessRequestUri !== undefined || isOfferCreated"
                       @click="requestAccessToData()">Request Data</Button>
           </div>
-          <div v-else-if="currentState === STATES.PendingDataRequest || currentState === STATES.DataSuccessfullyProvided" class="gap-2 ml-2 py-2">
+          <div v-else-if="currentState === STATES.PendingDataRequest || currentState === STATES.DataSuccessfullyProvided" class="gap-2">
             <StatusChip :status="currentState"></StatusChip>
-            <div class="ml-2">
               <h5>Business Assessemnent data</h5>
               <p class="text-xs pb-2">Requested Data</p>
               <p class="pb-4 text-sm font-medium">{{selectedShapeTree.label}}</p>
-            </div>
             <Button class="step-button"
                     v-bind:disabled="isDialogShowDataBtnDisabled"
-                    @click="processDataDialogBox()">Show Data</Button>
+                    @click="processDataDialogBox()" severity="secondary">Show Data</Button>
           </div>
-          <div v-else-if="currentState === STATES.WaitingForResponse || currentState === STATES.OfferAccepted || currentState === STATES.Terminated" class=" gap-2 ml-2 py-2">
+          <div v-else-if="currentState === STATES.WaitingForResponse || currentState === STATES.OfferAccepted || currentState === STATES.Terminated" class=" gap-2">
             <StatusChip :status="currentState" v-if="currentState !== STATES.Terminated"></StatusChip>
-            <div class="ml-2">
-              <h5>Business assessment data</h5>
+              <h5  :class="{ 'mt-0' : currentState === STATES.Terminated }">Business assessment data</h5>
               <p class="text-xs pb-2">Requested Data:</p>
               <p class="pb-4 text-sm font-medium">{{selectedShapeTree.label}}</p>
-            </div>
-            <Button class="step-button"
+            <Button type="button" class="step-button"
                     v-bind:disabled="!isAccessRequestGranted || isAccessRequestGranted === 'false'"
                     @click="processDataDialogBox()" severity="secondary">Show Data</Button>
           </div>
         </div>
         <div class="grid pt-2 pb-2">
-          <div class="col-6 pl-0">
+          <div class="col-6">
             <DacklTextInput type="number" :disabled="!(currentState === STATES.DataSuccessfullyProvided)" :maxFractionDigits="2" class="w-full md:w-auto mt-2" label="Annual Percentage rate in %" v-model="enteredAnnualPercentageRate"/>
           </div>
           <div class="col-6">
@@ -65,9 +61,9 @@
           </div>
         </div>
         <Button v-if="isTerminateBtnVisible" severity="danger"
-                class="step-button text-0" @click="SetTerminationFlagInOrder(offersForDemand)">Terminate business relation
+                class="step-button text-0 ml-2" @click="SetTerminationFlagInOrder(offersForDemand)">Terminate business relation
         </Button>
-        <Button v-else-if="currentState !== STATES.Terminated" class="step-button" :disabled="isCreateOfferBtnDisabled"
+        <Button v-else-if="currentState !== STATES.Terminated" class="step-button ml-2" :disabled="isCreateOfferBtnDisabled"
                 @click="createOfferResource(props.demandUri, accessRequestUri!)">Create Offer and grant Access</Button>
         </div>
       </template>
@@ -755,9 +751,7 @@ setTimeout(()=>{
 </script>
 
 <style scoped>
-.p-component :deep(.p-card-body){
-  padding-top:0px
-}
+
 .p-component :deep(.p-card-content ){
   padding-top:0px
 }
@@ -826,7 +820,6 @@ setTimeout(()=>{
     width: fit-content;
     font-weight: bold;
     border: none;
-    margin-left: 0.5rem;
 
     &:hover {
       background-color: rgba(65, 132, 153, 0.2);
