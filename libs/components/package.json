@@ -7,7 +7,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "repository": { "type": "git", "url": "https://github.com/DATEV-Research/Solid-B2B-showcase-libs.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DATEV-Research/Solid-B2B-showcase-libs.git"
+  },
   "description": "Shared Vue Components for the MANDAT B2B Showcase",
   "keywords": [
     "vue",
@@ -63,5 +66,5 @@
   "gitHooks": {
     "pre-commit": "lint-staged"
   },
-  "gitHead": "b44c8778440b2c8fe3e34a2001c9f9186a1ebd2a"
+  "gitHead": "72ea29e8e0d1ef10453c0c89f808474281e9af8e"
 }
