@@ -11,7 +11,7 @@
       class="pt-5 -mt-5"
       :id="id"
       :value="modelValue"
-      :style =" { backgroundColor: backgroundColor }"
+      :style="{ backgroundColor: backgroundColor }"
       :disabled="disabled"
       @keyup="update($event.target.value)"
     />
@@ -19,7 +19,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps<{
   type: string;
@@ -32,13 +32,13 @@ const emit = defineEmits<{
 }>();
 const error = ref<boolean>(false);
 
-const backgroundColor = ref('white');
+const backgroundColor = ref("white");
 watch(
-    () => props.disabled,
-    (newValue) => {
-      backgroundColor.value = newValue ? 'rgba(237, 240, 243, 1)' : 'white';
-    },
-    { immediate: true } // Run the watcher immediately on component mount
+  () => props.disabled,
+  (newValue) => {
+    backgroundColor.value = newValue ? "rgba(237, 240, 243, 1)" : "white";
+  },
+  { immediate: true } // Run the watcher immediately on component mount
 );
 const id = Math.random().toString(32).substring(2);
 
