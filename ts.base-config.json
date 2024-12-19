@@ -11,18 +11,14 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "baseUrl": ".",
     "rootDir": ".",
     "types": [
       "webpack-env"
     ],
-    "paths": {
-      "@shared/components": ["libs/components/index.ts"],
-      "@shared/composables": ["libs/composables/index.ts"],
-      "@shared/solid": ["libs/solid/index.ts"],
-      "@shared/theme": ["libs/theme/index.ts"]
-    },
     "lib": [
       "esnext",
       "dom",
