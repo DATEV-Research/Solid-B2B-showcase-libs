@@ -1,5 +1,7 @@
 # @shared/components
 
+[![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-components)](https://www.npmjs.com/package/@datev-research/mandat-shared-components) 
+
 This is a monorepo library and the package.json may not include all the actual dependencies.
 
 It uses the vue-cli service to build library files for CommonJS and UMD. You can just import and use 

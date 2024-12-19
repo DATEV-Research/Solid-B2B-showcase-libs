@@ -1,4 +1,6 @@
-# `@shared/utils`
+# utils
+
+[![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-utils)](https://www.npmjs.com/package/@datev-research/mandat-shared-utils) 
 
 > TODO: description
 

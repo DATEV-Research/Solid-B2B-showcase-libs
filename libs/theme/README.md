@@ -1,5 +1,7 @@
 # @shared/theme
 
+[![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-theme)](https://www.npmjs.com/package/@datev-research/mandat-shared-theme) 
+
 This is a standalone library with minor dependencies. 
 
 You can use the theme by importing the bundled css file like `import "@datev-research/mandat-shared-theme/theme.css";` or using the github 

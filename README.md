@@ -4,13 +4,13 @@
 
 In this repo you'll find shared libraries for the SOLID B2B Showcase. You can use the libraries in your own project by installing them from npmjs.
 
-- **@datev-research/mandat-shared-components:** Vue Components
-- **@datev-research/mandat-shared-composables:** Vue Composables
-- **@datev-research/mandat-shared-solid-interop:** SOLID interop helper functions
-- **@datev-research/mandat-shared-solid-requests:** SOLID request helper functions
-- **@datev-research/mandat-shared-solid-oidc:** SOLID OIDC helper functions
-- **@datev-research/mandat-shared-theme:** Theme for Showcase Apps
-- **@datev-research/mandat-shared-utils:** Common Utility Functions
+- **@datev-research/mandat-shared-components:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-components)](https://www.npmjs.com/package/@datev-research/mandat-shared-components) Vue Components
+- **@datev-research/mandat-shared-composables:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-composables)](https://www.npmjs.com/package/@datev-research/mandat-shared-composables) Vue Composables
+- **@datev-research/mandat-shared-solid-interop:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-solid-interop)](https://www.npmjs.com/package/@datev-research/mandat-shared-solid-interop) SOLID interop helper functions
+- **@datev-research/mandat-shared-solid-requests:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-solid-requests)](https://www.npmjs.com/package/@datev-research/mandat-shared-solid-requests) SOLID request helper functions
+- **@datev-research/mandat-shared-solid-oidc:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-solid-oidc)](https://www.npmjs.com/package/@datev-research/mandat-shared-solid-oidc) SOLID OIDC helper functions
+- **@datev-research/mandat-shared-theme:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-theme)](https://www.npmjs.com/package/@datev-research/mandat-shared-theme) Theme for Showcase Apps
+- **@datev-research/mandat-shared-utils:** [![npm version](https://img.shields.io/npm/v/@datev-research/mandat-shared-utils)](https://www.npmjs.com/package/@datev-research/mandat-shared-utils) Common Utility Functions
 
 ## Install
 
