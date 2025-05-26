@@ -54,12 +54,12 @@
         class="idp"
         severity="primary"
         @click="
-          idp = 'https://solid.aifb.kit.edu';
+          idp = 'https://solid.dev.datev.de';
           session.login(idp, redirect_uri);
           isDisplaingIDPs = !isDisplaingIDPs;
         "
       >
-        https://solid.aifb.kit.edu
+        https://solid.dev.datev.de
       </Button>
       <Button
         class="idp"
