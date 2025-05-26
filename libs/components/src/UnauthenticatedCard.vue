@@ -31,7 +31,7 @@ const { session } = useSolidSession();
 const redirect_uri = window.location.href;
 
 function redirectToLogin() {
-  const idp = "https://solid.aifb.kit.edu";
+  const idp = "https://solid.dev.datev.de";
   session.login(idp, redirect_uri);
 }
 </script>
