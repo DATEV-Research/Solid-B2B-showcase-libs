@@ -9,7 +9,7 @@ let subscribeToPush!: Function;
 let session!: Session;
 
 // hardcoding for my demo
-const solidWebPushProfile = "https://solid.aifb.kit.edu/web-push/service";
+const solidWebPushProfile = "https://solid.dev.datev.de/web-push/service";
 
 // usually this should expect the resource to sub to, then check their .meta and so on...
 const _getSolidWebPushDetails = async () => {
