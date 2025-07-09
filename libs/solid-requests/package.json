@@ -1,13 +1,16 @@
 {
   "name": "@datev-research/mandat-shared-solid-requests",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage": "https://github.com/DATEV-Research/",
   "author": "DATEV eG <info@datev.de> (https://www.datev.de/)",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "repository": { "type": "git", "url": "https://github.com/DATEV-Research/Solid-B2B-showcase-libs.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DATEV-Research/Solid-B2B-showcase-libs.git"
+  },
   "description": "SOLID Request Functions",
   "keywords": [
     "solid",
