@@ -123,22 +123,27 @@
 
 <script lang="ts">
 import { useSolidSession } from "@datev-research/mandat-shared-composables";
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed } from "vue";
 
 export default defineComponent({
   name: "session.loginButton",
-  setup() {
+  props: {
+    redirectUri: String,
+  },
+  setup(props) {
     const { session } = useSolidSession();
     const isDisplaingIDPs = ref(false);
     const idp = ref("");
-    const redirect_uri = window.location.href;
+    const redirect_uri = computed(() => {
+      return props.redirectUri || window.location.href;
+    });
     const GetAPod = () => {
       window
         .open("https://solidproject.org//users/get-a-pod", "_blank")
         ?.focus();
       // window.close();
     };
-    return { session, isDisplaingIDPs, idp, redirect_uri, GetAPod };
+    return { session, isDisplaingIDPs, idp, GetAPod, redirect_uri };
   },
 });
 </script>

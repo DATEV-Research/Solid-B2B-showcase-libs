@@ -20,6 +20,7 @@ export default defineComponent({
   props: {
     isLoggedIn: Boolean,
     webId: String,
+    redirect_uri: String,
     appLogo: String,
     appName: String,
     backgroundColor: {
@@ -37,6 +38,7 @@ export default defineComponent({
 
     const { hasActivePush } = useServiceWorkerNotifications();
     const { name, img } = useSolidProfile();
+
     return { img, hasActivePush, name, computedBgColor };
   },
 });
@@ -74,7 +76,7 @@ export default defineComponent({
             <i v-else class="pi pi-user" />
           </Avatar>
         </a>
-        <LoginButton v-if="!isLoggedIn" />
+        <LoginButton v-if="!isLoggedIn" :redirectUri="redirect_uri" />
         <LogoutButton v-else />
       </template>
     </Toolbar>
